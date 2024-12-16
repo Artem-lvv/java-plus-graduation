@@ -11,6 +11,13 @@
 	</parent>
 
 	<name>Explore With Me</name>
+	<modules>
+		<module>stats</module>
+		<module>stats/stats-client</module>
+		<module>stats/stats-dto</module>
+		<module>stats/stats-server</module>
+		<module>ewm</module>
+	</modules>
 
 	<groupId>ru.practicum</groupId>
 	<artifactId>explore-with-me</artifactId>
@@ -19,12 +26,39 @@
 
 	<properties>
 		<java.version>21</java.version>
+		<lombok.version>1.18.32</lombok.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jeckson-databind-nullable.version>0.2.6</jeckson-databind-nullable.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-mapstruct-binding</artifactId>
+				<version>0.2.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct</artifactId>
+				<version>${mapstruct.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct-processor</artifactId>
+				<version>${mapstruct.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>

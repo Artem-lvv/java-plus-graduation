@@ -1,0 +1,19 @@
+server:
+  port: 9090
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+  sql:
+    init:
+      mode: ALWAYS
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
