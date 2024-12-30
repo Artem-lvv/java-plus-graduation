@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    #    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:ewm-main}
+    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: update  # Автоматическое создание или обновление таблиц
+    show-sql: true  # Показывать SQL-запросы в логах
+    properties:
+      hibernate:
+        format_sql: true  # Форматирование SQL-запросов для удобочитаемости
+
+server:
+  port: 0
+
+stats-server:
+  url: ${STATS_SERVICE_URL:http://localhost:9090}
+  hit: "/hit"
+  stats: "/stats"
+
