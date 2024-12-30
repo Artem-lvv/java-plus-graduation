@@ -1,6 +1,6 @@
 spring:
   application:
-    name: main-service
+    name: stats-service
   config:
     import: "configserver:"
   cloud:
@@ -12,6 +12,9 @@ spring:
       retry:
         useRandomPolicy: true
         max-interval: 6000
+
+server:
+  port: 9090
 
 eureka:
   client:
