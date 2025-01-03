@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: main-service
+          uri: lb://MAIN-SERVICE
+          predicates:
+            - Path=/users/**, /events/**, /admin/**, /categories/**, /compilations/**, /locations/**
+
+        - id: stat-service
+          uri: lb://STATS-SERVICE
+          predicates:
+            - Path=/hit, /stats/**
+
+        - id: location-management
+          uri: lb://FEATURE-SERVICE
+          predicates:
+            - Path=/locations/**, /admin/locations/**
