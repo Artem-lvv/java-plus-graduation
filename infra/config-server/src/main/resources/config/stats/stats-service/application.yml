@@ -1,7 +1,7 @@
 spring:
   datasource:
-#    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:ewm-stats}
-    url: jdbc:postgresql://stats-db:5432/${POSTGRES_DB:ewm-stats}
+    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:ewm-stats}
+#    url: jdbc:postgresql://stats-db:5432/${POSTGRES_DB:ewm-stats}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver

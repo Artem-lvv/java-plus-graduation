@@ -1,7 +1,7 @@
 spring:
   datasource:
-    #    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:ewm-main}
-    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:ewm-main}
+#    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
@@ -20,10 +20,9 @@ spring:
 server:
   port: 0
 
-stats-server:
-  url: ${STATS_SERVICE_URL:http://localhost:9090}
-  hit: "/hit"
-  stats: "/stats"
+statsService:
+  url:
+  name: stats-service
 
 resilience4j.circuitbreaker:
   instances:

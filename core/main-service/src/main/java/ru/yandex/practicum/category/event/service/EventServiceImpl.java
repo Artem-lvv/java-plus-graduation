@@ -31,12 +31,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import ru.yandex.practicum.SearchStats;
-import ru.yandex.practicum.client.StatsClient;
-import ru.yandex.practicum.dto.CreateStatsDto;
-import ru.yandex.practicum.dto.StatCountHitsDto;
+import ru.yandex.practicum.stats.api.StatsServiceApiClient;
+import ru.yandex.practicum.stats.model.EndpointHit;
+import ru.yandex.practicum.stats.model.ViewStats;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryStorage categoryStorage;
     private final LocationService locationService;
     private final RequestStorage requestStorage;
-    private final StatsClient statsClient;
+    private final StatsServiceApiClient statsApiClient;
 
     @Override
     public List<EventDto> getAllByAdmin(final AdminParameter adminParameter) {
@@ -321,29 +321,25 @@ public class EventServiceImpl implements EventService {
     }
 
     private void addStats(final HttpServletRequest request) {
-        statsClient.save(CreateStatsDto.builder()
-                .app("ewm")
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build()
-        );
+        EndpointHit endpointHit = new EndpointHit();
+        endpointHit.app("ewm");
+        endpointHit.ip(request.getRemoteAddr());
+        endpointHit.uri(request.getRequestURI());
+        endpointHit.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString());
+
+        statsApiClient.hit(endpointHit);
     }
 
     private void updateStats(Event event, final LocalDateTime startRange, final LocalDateTime endRange,
                              final boolean unique) {
 
-        List<StatCountHitsDto> stats = statsClient.get(SearchStats.builder()
-                .start(startRange)
-                .end(endRange)
-                .uris(List.of("/events/" + event.getId()))
-                .unique(unique)
-                .build()
-        );
+        List<ViewStats> stats = statsApiClient.getStats(startRange.toString(), endRange.toString(), List.of("/events/" + event.getId()), unique)
+                .getBody();
+
         long views = 0L;
 
-        for (StatCountHitsDto stat : stats) {
-            views += stat.hits();
+        for (ViewStats stat : stats) {
+            views += stat.getHits();
         }
 
         int confirmedRequests = requestStorage.countByEventIdAndStatus(event.getId(), State.CONFIRMED);
