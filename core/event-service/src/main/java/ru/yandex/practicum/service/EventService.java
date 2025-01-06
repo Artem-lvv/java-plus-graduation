@@ -1,6 +1,16 @@
 package ru.yandex.practicum.service;
 
+//import jakarta.servlet.http.HttpServletRequest;
+
 import jakarta.servlet.http.HttpServletRequest;
+import ru.yandex.practicum.event.model.AdminParameter;
+import ru.yandex.practicum.event.model.PublicParameter;
+import ru.yandex.practicum.event.model.dto.CreateEventDto;
+import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.UpdateEventDto;
+import ru.yandex.practicum.request.model.dto.RequestDto;
+import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
+import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 
 import java.util.List;
 

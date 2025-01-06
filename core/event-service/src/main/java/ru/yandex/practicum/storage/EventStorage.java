@@ -1,9 +1,9 @@
 package ru.yandex.practicum.storage;
 
-import ru.yandex.practicum.category.event.model.Event;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import ru.yandex.practicum.event.model.Event;
 
 import java.util.List;
 import java.util.Optional;

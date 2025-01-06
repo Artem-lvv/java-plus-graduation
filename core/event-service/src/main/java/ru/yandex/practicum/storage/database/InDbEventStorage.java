@@ -1,8 +1,8 @@
 package ru.yandex.practicum.storage.database;
 
-import ru.yandex.practicum.category.event.model.Event;
+import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.storage.EventStorage;
-import ru.yandex.practicum.category.exception.type.NotFoundException;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

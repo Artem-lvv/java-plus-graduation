@@ -6,7 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.event.model.AdminParameter;
+import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.service.EventService;
+
+import ru.yandex.practicum.event.model.Event;
 
 import java.util.List;
 

@@ -8,6 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.event.model.PublicParameter;
+import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.service.EventService;
+import ru.yandex.practicum.validation.ConstraintNotZero;
 
 import java.util.List;
 
