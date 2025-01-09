@@ -1,15 +1,17 @@
 package ru.yandex.practicum.category.service;
 
-import ru.yandex.practicum.category.model.Category;
-import ru.yandex.practicum.category.model.dto.CategoryDto;
-import ru.yandex.practicum.category.model.dto.CreateCategoryDto;
-import ru.yandex.practicum.category.storage.CategoryStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
+import ru.yandex.practicum.AdminEventClient;
+import ru.yandex.practicum.category.model.Category;
+import ru.yandex.practicum.category.model.dto.CategoryDto;
+import ru.yandex.practicum.category.model.dto.CreateCategoryDto;
+import ru.yandex.practicum.category.storage.CategoryStorage;
+import ru.yandex.practicum.event.model.AdminParameter;
+import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 
 import java.util.List;
@@ -21,7 +23,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Qualifier("mvcConversionService")
     private final ConversionService cs;
     private final CategoryStorage categoryStorage;
-    private final EventStorage eventStorage;
+    private final AdminEventClient adminEventClient;
 
     @Override
     public CategoryDto create(CreateCategoryDto createCategoryDto) {
@@ -40,7 +42,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(final long id) {
-        if (!ObjectUtils.isEmpty(eventStorage.findByCategoryId(id))) {
+        List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter
+                .builder()
+                .categories(List.of(id))
+                .build());
+
+        if (!eventDtos.isEmpty()) {
             throw new ConflictException("Category with id " + id + " exists in Event");
         }
 

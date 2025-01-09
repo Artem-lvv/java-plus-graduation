@@ -1,6 +1,5 @@
 package ru.yandex.practicum.service;
 
-//import jakarta.servlet.http.HttpServletRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.yandex.practicum.event.model.AdminParameter;

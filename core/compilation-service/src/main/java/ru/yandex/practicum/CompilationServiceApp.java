@@ -3,11 +3,11 @@ package ru.yandex.practicum;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-//import ru.yandex.practicum.stats.api.StatsServiceApiClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-//@EnableFeignClients(clients = {StatsServiceApiClient.class})
+@EnableFeignClients(clients = {AdminEventClient.class})
 public class CompilationServiceApp {
     public static void main(String[] args) {
         SpringApplication.run(CompilationServiceApp.class);

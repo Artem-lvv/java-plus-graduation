@@ -36,4 +36,7 @@ public class AdminEventController {
         log.info("Request by the administrator to change an {} by id - {} - {}", SIMPLE_NAME, eventId, updateEventDto);
         return eventService.updateByAdmin(eventId, updateEventDto);
     }
+
+//    @GetMapping
+//    public List<EventDto> get(@Valid final AdminParameter adminParameter) {}
 }

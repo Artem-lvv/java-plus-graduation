@@ -1,5 +1,9 @@
 package ru.yandex.practicum.service;
 
+import ru.yandex.practicum.AdminCategoryClient;
+import ru.yandex.practicum.AdminUserClient;
+import ru.yandex.practicum.PrivateUserRequestClient;
+import ru.yandex.practicum.PublicCategoryClient;
 import ru.yandex.practicum.category.model.Category;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,23 +15,39 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.event.model.PublicParameter;
+import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
+import ru.yandex.practicum.exception.type.NotFoundException;
+import ru.yandex.practicum.location.model.Location;
+import ru.yandex.practicum.request.model.Request;
+import ru.yandex.practicum.request.model.dto.RequestDto;
+import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
+import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 import ru.yandex.practicum.state.State;
-import ru.yandex.practicum.stats.api.StatsServiceApiClient;
+//import ru.yandex.practicum.stats.api.StatsServiceApiClient;
+//import ru.yandex.practicum.stats.model.EndpointHit;
+//import ru.yandex.practicum.stats.model.ViewStats;
+import ru.yandex.practicum.stats.api.StatsServiceApi;
 import ru.yandex.practicum.stats.model.EndpointHit;
 import ru.yandex.practicum.stats.model.ViewStats;
 import ru.yandex.practicum.storage.EventStorage;
+import ru.yandex.practicum.user.model.User;
+import ru.yandex.practicum.user.model.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-import static ru.yandex.practicum.category.event.model.QEvent.event;
+import static ru.yandex.practicum.event.model.QEvent.event;
 
 @Slf4j
 @Service
@@ -36,12 +56,16 @@ public class EventServiceImpl implements EventService {
     private static final String SIMPLE_NAME = Event.class.getSimpleName();
     @Qualifier("mvcConversionService")
     private final ConversionService cs;
+    private final StatsServiceApi statsService;
     private final EventStorage eventStorage;
-    private final UserStorage userStorage;
-    private final CategoryStorage categoryStorage;
-    private final LocationService locationService;
-    private final RequestStorage requestStorage;
-    private final StatsServiceApiClient statsApiClient;
+//    private final UserStorage userStorage;
+    private final AdminUserClient adminUserClient;
+//    private final CategoryStorage categoryStorage;
+    private final PublicCategoryClient publicCategoryClient;
+//    private final LocationService locationService;
+//    private final RequestStorage requestStorage;
+    private final PrivateUserRequestClient privateUserRequestClient;
+//    private final StatsServiceApiClient statsApiClient;
 
     @Override
     public List<EventDto> getAllByAdmin(final AdminParameter adminParameter) {
@@ -79,7 +103,8 @@ public class EventServiceImpl implements EventService {
         }
 
         if (updateEventDto.category() != 0) {
-            eventInStorage.setCategory(categoryStorage.getByIdOrElseThrow(updateEventDto.category()));
+            CategoryDto categoryDto = publicCategoryClient.getById(updateEventDto.category());
+            eventInStorage.setCategory(cs.convert(categoryDto, Category.class));
         }
 
         return eventInStorage;
@@ -112,9 +137,10 @@ public class EventServiceImpl implements EventService {
         }
 
         if (!ObjectUtils.isEmpty(updateEventDto.location())) {
-            eventInStorage.setLocation(cs.convert(
-                    locationService.getByCoordinatesOrElseCreate(updateEventDto.location()), Location.class)
-            );
+
+//            eventInStorage.setLocation(cs.convert(
+//                    locationService.getByCoordinatesOrElseCreate(updateEventDto.location()), Location.class)
+//            );
         }
 
         return cs.convert(eventStorage.save(update(eventInStorage, updateEventDto)), EventDto.class);
@@ -122,16 +148,26 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto create(final CreateEventDto createEventDto, final long userId) {
-        final User user = userStorage.getByIdOrElseThrow(userId);
-        final Category category = categoryStorage.getByIdOrElseThrow(createEventDto.category());
-        final Location location = cs.convert(locationService.getByCoordinatesOrElseCreate(createEventDto.location()),
-                Location.class);
+//        final User user = userStorage.getByIdOrElseThrow(userId);
+        UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+
+        User user = cs.convert(userDto, User.class);
+
+//        final Category category = categoryStorage.getByIdOrElseThrow(createEventDto.category());
+        CategoryDto categoryDto = publicCategoryClient.getById(createEventDto.category());
+        final Category category = cs.convert(categoryDto, Category.class);
+
+//        final Location location = cs.convert(locationService.getByCoordinatesOrElseCreate(createEventDto.location()),
+//                Location.class);
 
         Event event = cs.convert(createEventDto, Event.class);
 
         event.setInitiator(user);
         event.setCategory(category);
-        event.setLocation(location);
+//        event.setLocation(location);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(State.PENDING);
 
@@ -140,7 +176,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventDto> getAllByUserId(final long userId, final int from, final int size) {
-        userStorage.existsByIdOrElseThrow(userId);
+//        userStorage.existsByIdOrElseThrow(userId);
+        adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+
         return eventStorage.findAllByInitiatorId(userId, PageRequest.of(from, size)).stream()
                 .map(event -> cs.convert(event, EventDto.class))
                 .toList();
@@ -148,16 +189,27 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId) {
-        userStorage.existsByIdOrElseThrow(userId);
+//        userStorage.existsByIdOrElseThrow(userId);
+        adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+
         eventStorage.existsByIdOrElseThrow(eventId);
-        return requestStorage.findAllByEventId(eventId).stream()
-                .map(event -> cs.convert(event, RequestDto.class))
-                .toList();
+//        return requestStorage.findAllByEventId(eventId).stream()
+//                .map(event -> cs.convert(event, RequestDto.class))
+//                .toList();
+    return privateUserRequestClient.getAll(userId);
     }
 
     @Override
     public EventDto getByIdAndUserId(final long eventId, final long userId) {
-        userStorage.existsByIdOrElseThrow(userId);
+//        userStorage.existsByIdOrElseThrow(userId);
+        adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+
         Event event = eventStorage.getByIdOrElseThrow(eventId);
         checkIfTheUserIsTheEventCreator(userId, eventId);
         return cs.convert(event, EventDto.class);
@@ -166,13 +218,19 @@ public class EventServiceImpl implements EventService {
     @Override
     public RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId, final long eventId,
                                                                                UpdateRequestByIdsDto update) {
-        List<Request> requests = requestStorage.findAllByIdInAndEventId(update.requestIds(), eventId);
+//        List<Request> requests = requestStorage.findAllByIdInAndEventId(update.requestIds(), eventId);
+        List<RequestDto> requestDtoList = privateUserRequestClient.getAll(userId)
+                .stream()
+                .filter(requestDto -> requestDto.event() == eventId)
+                .toList();
 
-        if (ObjectUtils.isEmpty(requests)) {
+        if (ObjectUtils.isEmpty(requestDtoList)) {
             throw new NotFoundException("No requests found for event id " + eventId);
         }
 
-        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
+        Event event = eventStorage.getById(eventId).get();
+
+//        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
 
         RequestStatusUpdateResultDto result = RequestStatusUpdateResultDto.builder()
                 .confirmedRequests(new ArrayList<>())
@@ -181,40 +239,40 @@ public class EventServiceImpl implements EventService {
 
         List<Request> requestsForSave = new ArrayList<>();
 
-        for (Request request : requests) {
-            if (request.getStatus() != State.PENDING) {
+        for (RequestDto request : requestDtoList) {
+            if (request.status() != State.PENDING) {
                 throw new ConflictException(
                         "The status can only be changed for applications that are in a pending state"
                 );
             }
 
-            Event event = request.getEvent();
-
-            if (countRequest >= event.getParticipantLimit()) {
-                throw new ConflictException("The limit on applications for this event has been reached");
-            }
-
-            if (event.getParticipantLimit() != 0 && event.isRequestModeration()) {
-                request.setStatus(update.status());
-
-                if (countRequest++ == event.getParticipantLimit()) {
-                    request.setStatus(State.CANCELED);
-                }
-
-                requestsForSave.add(request);
-
-                if (update.status() == State.CONFIRMED) {
-                    result.confirmedRequests().add(cs.convert(request, RequestDto.class));
-                }
-
-                if (update.status() == State.REJECTED) {
-                    result.rejectedRequests().add(cs.convert(request, RequestDto.class));
-                }
-            }
-        }
-
-        if (!requestsForSave.isEmpty()) {
-            requestStorage.saveAll(requestsForSave);
+//            Event event = request.getEvent();
+//
+////            if (countRequest >= event.getParticipantLimit()) {
+////                throw new ConflictException("The limit on applications for this event has been reached");
+////            }
+//
+//            if (event.getParticipantLimit() != 0 && event.isRequestModeration()) {
+//                request.setStatus(update.status());
+//
+////                if (countRequest++ == event.getParticipantLimit()) {
+////                    request.setStatus(State.CANCELED);
+////                }
+//
+//                requestsForSave.add(request);
+//
+//                if (update.status() == State.CONFIRMED) {
+//                    result.confirmedRequests().add(cs.convert(request, RequestDto.class));
+//                }
+//
+//                if (update.status() == State.REJECTED) {
+//                    result.rejectedRequests().add(cs.convert(request, RequestDto.class));
+//                }
+//            }
+//        }
+//
+//        if (!requestsForSave.isEmpty()) {
+//            requestStorage.saveAll(requestsForSave);
         }
 
         return result;
@@ -309,19 +367,24 @@ public class EventServiceImpl implements EventService {
 
     private void addStats(final HttpServletRequest request) {
         EndpointHit endpointHit = new EndpointHit();
-        endpointHit.app("ewm");
+        endpointHit.app("event-service");
         endpointHit.ip(request.getRemoteAddr());
         endpointHit.uri(request.getRequestURI());
         endpointHit.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString());
-
-        statsApiClient.hit(endpointHit);
+//
+//        statsApiClient.hit(endpointHit);
+        statsService.hit(endpointHit);
     }
 
     private void updateStats(Event event, final LocalDateTime startRange, final LocalDateTime endRange,
                              final boolean unique) {
 
-        List<ViewStats> stats = statsApiClient.getStats(startRange.toString(), endRange.toString(), List.of("/events/" + event.getId()), unique)
-                .getBody();
+//        List<ViewStats> stats = statsApiClient.getStats(startRange.toString(), endRange.toString(), List.of("/events/" + event.getId()), unique)
+//                .getBody();
+        List<ViewStats> stats = statsService.getStats(startRange.toString(),
+                endRange.toString(),
+                List.of("/events/" + event.getId()),
+                unique).getBody();
 
         long views = 0L;
 
@@ -329,10 +392,10 @@ public class EventServiceImpl implements EventService {
             views += stat.getHits();
         }
 
-        int confirmedRequests = requestStorage.countByEventIdAndStatus(event.getId(), State.CONFIRMED);
+//        int confirmedRequests = requestStorage.countByEventIdAndStatus(event.getId(), State.CONFIRMED);
 
         event.setViews(views);
-        event.setConfirmedRequests(confirmedRequests);
+//        event.setConfirmedRequests(confirmedRequests);
     }
 
     private void checkIfTheUserIsTheEventCreator(final long userId, final long eventId) {
@@ -345,6 +408,11 @@ public class EventServiceImpl implements EventService {
     private Specification<Event> checkCategories(final List<Long> categories) {
         return ObjectUtils.isEmpty(categories) ? null
                 : ((root, query, criteriaBuilder) -> root.get("category").get("id").in(categories));
+    }
+
+    private Specification<Event> checkEvents(final List<Long> eventsId) {
+        return ObjectUtils.isEmpty(eventsId) ? null
+                : ((root, query, criteriaBuilder) -> root.get("event").get("id").in(eventsId));
     }
 
     private Specification<Event> checkByUserIds(final List<Long> userIds) {
@@ -375,6 +443,7 @@ public class EventServiceImpl implements EventService {
         return Specification.where(checkByUserIds(adminParameter.getUsers()))
                 .and(checkStates(adminParameter.getStates()))
                 .and(checkCategories(adminParameter.getCategories()))
+                .and(checkEvents(adminParameter.getEvents()))
                 .and(checkRangeStart(adminParameter.getRangeStart()))
                 .and(checkRangeEnd(adminParameter.getRangeEnd()));
     }

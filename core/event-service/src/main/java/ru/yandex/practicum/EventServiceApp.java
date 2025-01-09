@@ -8,7 +8,10 @@ import ru.yandex.practicum.stats.api.StatsServiceApiClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(clients = {StatsServiceApiClient.class})
+@EnableFeignClients(clients = {AdminUserClient.class,
+        PublicCategoryClient.class,
+        PrivateUserRequestClient.class,
+        StatsServiceApiClient.class})
 public class EventServiceApp {
     public static void main(String[] args) {
         SpringApplication.run(EventServiceApp.class);

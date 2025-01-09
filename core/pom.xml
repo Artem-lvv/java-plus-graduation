@@ -20,6 +20,10 @@
         <module>request-service</module>
         <module>location-service</module>
         <module>compilation-service</module>
+        <module>event-service-api</module>
+        <module>user-service-api</module>
+        <module>category-service-api</module>
+        <module>request-service-api</module>
     </modules>
 
 </project>

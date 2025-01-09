@@ -1,9 +1,13 @@
 package ru.yandex.practicum.service;
 
+import ru.yandex.practicum.AdminEventClient;
 import ru.yandex.practicum.compilation.model.Compilation;
 import ru.yandex.practicum.compilation.model.dto.CompilationDto;
 import ru.yandex.practicum.compilation.model.dto.CreateCompilationDto;
+import ru.yandex.practicum.compilation.model.dto.UpdateCompilationDto;
+import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.storage.CompilationStorage;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +27,21 @@ public class CompilationServiceImpl implements CompilationService {
     @Qualifier("mvcConversionService")
     private final ConversionService cs;
     private final CompilationStorage compilationStorage;
-    private final EventStorage eventStorage;
+    private final AdminEventClient adminEventClient;
 
     @Override
     public CompilationDto create(final CreateCompilationDto createCompilationDto) {
         Compilation compilation = cs.convert(createCompilationDto, Compilation.class);
 
         if (!ObjectUtils.isEmpty(createCompilationDto.events())) {
-            final List<Event> events = eventStorage.findAllById(createCompilationDto.events());
+            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
+                    .events(createCompilationDto.events().stream().toList())
+                    .build());
+
+           final List<Event> events = eventDtos
+                    .stream()
+                    .map(eventDto -> cs.convert(eventDto, Event.class))
+                    .toList();
 
             if (events.size() != createCompilationDto.events().size()) {
                 throw new NotFoundException("the number of events found does not correspond to the requirements");
@@ -55,7 +66,16 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
-            final List<Event> events = eventStorage.findAllById(updateCompilationDto.events());
+
+            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
+                    .events(updateCompilationDto.events().stream().toList())
+                    .build());
+
+            final List<Event> events = eventDtos
+                    .stream()
+                    .map(eventDto -> cs.convert(eventDto, Event.class))
+                    .toList();
+
             compilationInStorage.setEvents(events);
         }
 

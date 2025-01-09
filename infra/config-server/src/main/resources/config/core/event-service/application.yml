@@ -24,6 +24,21 @@ statsService:
   url:
   name: stats-service
 
+admin:
+  user:
+    service:
+      url:
+
+public:
+  category:
+    service:
+      url:
+private:
+  user:
+    requests:
+      service:
+        url:
+
 resilience4j.circuitbreaker:
   instances:
     myService:

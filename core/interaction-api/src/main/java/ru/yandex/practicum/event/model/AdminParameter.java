@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EventStartDateBeforeEndDate
@@ -23,6 +25,7 @@ public class AdminParameter {
     private List<Long> users;
     private List<State> states;
     private List<Long> categories;
+    private List<Long> events;
 
     @JsonSetter(nulls = Nulls.SKIP)
     @DateTimeFormat(pattern = PATTERN)
