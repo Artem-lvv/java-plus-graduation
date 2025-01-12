@@ -1,15 +1,5 @@
 package ru.yandex.practicum.service;
 
-import ru.yandex.practicum.AdminEventClient;
-import ru.yandex.practicum.compilation.model.Compilation;
-import ru.yandex.practicum.compilation.model.dto.CompilationDto;
-import ru.yandex.practicum.compilation.model.dto.CreateCompilationDto;
-import ru.yandex.practicum.compilation.model.dto.UpdateCompilationDto;
-import ru.yandex.practicum.event.model.AdminParameter;
-import ru.yandex.practicum.event.model.Event;
-import ru.yandex.practicum.event.model.dto.EventDto;
-import ru.yandex.practicum.exception.type.NotFoundException;
-import ru.yandex.practicum.storage.CompilationStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,7 +7,17 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import ru.yandex.practicum.AdminEventClient;
+import ru.yandex.practicum.compilation.model.Compilation;
+import ru.yandex.practicum.compilation.model.dto.CompilationDto;
+import ru.yandex.practicum.compilation.model.dto.CreateCompilationDto;
+import ru.yandex.practicum.compilation.model.dto.UpdateCompilationDto;
+import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.exception.type.NotFoundException;
+import ru.yandex.practicum.storage.CompilationStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -34,9 +34,6 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = cs.convert(createCompilationDto, Compilation.class);
 
         if (!ObjectUtils.isEmpty(createCompilationDto.events())) {
-//            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
-//                    .events(createCompilationDto.events().stream().toList())
-//                    .build());
             List<EventDto> eventDtos = adminEventClient.getAll(null,
                     null,
                     null,
@@ -75,10 +72,6 @@ public class CompilationServiceImpl implements CompilationService {
 
         if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
 
-//            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
-//                    .events(updateCompilationDto.events().stream().toList())
-//                    .build());
-
             List<EventDto> eventDtos = adminEventClient.getAll(null,
                     null,
                     null,
@@ -93,12 +86,13 @@ public class CompilationServiceImpl implements CompilationService {
                     .map(eventDto -> cs.convert(eventDto, Event.class))
                     .toList();
 
-            compilationInStorage.setEvents(events);
+            compilationInStorage.setEvents(new ArrayList<>(events));
         }
 
         log.info("Update compilation - {}", compilationInStorage);
 
-        return cs.convert(compilationStorage.save(compilationInStorage), CompilationDto.class);
+        Compilation compilation = compilationStorage.save(compilationInStorage);
+        return cs.convert(compilation, CompilationDto.class);
     }
 
     @Override

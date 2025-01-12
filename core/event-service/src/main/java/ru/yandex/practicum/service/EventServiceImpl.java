@@ -1,12 +1,5 @@
 package ru.yandex.practicum.service;
 
-import ru.yandex.practicum.AdminCategoryClient;
-import ru.yandex.practicum.AdminLocationClient;
-import ru.yandex.practicum.AdminUserClient;
-//import ru.yandex.practicum.PrivateUserRequestClient;
-import ru.yandex.practicum.PrivateUserRequestClient;
-import ru.yandex.practicum.PublicCategoryClient;
-import ru.yandex.practicum.category.model.Category;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +10,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import ru.yandex.practicum.AdminLocationClient;
+import ru.yandex.practicum.AdminUserClient;
+import ru.yandex.practicum.PrivateUserRequestClient;
+import ru.yandex.practicum.PublicCategoryClient;
+import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
-import ru.yandex.practicum.event.model.QEvent;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
@@ -30,14 +27,7 @@ import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.location.model.Location;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
-import ru.yandex.practicum.request.model.Request;
-import ru.yandex.practicum.request.model.dto.RequestDto;
-import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
-import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 import ru.yandex.practicum.state.State;
-//import ru.yandex.practicum.stats.api.StatsServiceApiClient;
-//import ru.yandex.practicum.stats.model.EndpointHit;
-//import ru.yandex.practicum.stats.model.ViewStats;
 import ru.yandex.practicum.stats.api.StatsServiceApi;
 import ru.yandex.practicum.stats.model.EndpointHit;
 import ru.yandex.practicum.stats.model.ViewStats;
@@ -47,13 +37,8 @@ import ru.yandex.practicum.user.model.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.event.model.QEvent.event;
 
@@ -66,14 +51,9 @@ public class EventServiceImpl implements EventService {
     private final ConversionService cs;
     private final StatsServiceApi statsService;
     private final EventStorage eventStorage;
-//    private final UserStorage userStorage;
     private final AdminUserClient adminUserClient;
-//    private final CategoryStorage categoryStorage;
     private final PublicCategoryClient publicCategoryClient;
-//    private final LocationService locationService;
-//    private final RequestStorage requestStorage;
     private final PrivateUserRequestClient privateUserRequestClient;
-//    private final StatsServiceApiClient statsApiClient;
     private final AdminLocationClient adminLocationClient;
 
     @Override
@@ -156,7 +136,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto create(final CreateEventDto createEventDto, final long userId) {
-//        final User user = userStorage.getByIdOrElseThrow(userId);
         UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst()
@@ -164,13 +143,8 @@ public class EventServiceImpl implements EventService {
 
         User user = cs.convert(userDto, User.class);
 
-//        final Category category = categoryStorage.getByIdOrElseThrow(createEventDto.category());
         CategoryDto categoryDto = publicCategoryClient.getById(createEventDto.category());
         final Category category = cs.convert(categoryDto, Category.class);
-
-//        final Location location = cs.convert(a.getByCoordinatesOrElseCreate(createEventDto.location()),
-//                Location.class);
-//        getOrCreateLocationDtoByCoordinates(createEventDto.location().lat(), createEventDto.location().lon());
 
         LocationDto locationDto = getOrCreateLocationDtoByCoordinates(createEventDto.location().lat(),
                 createEventDto.location().lon());
@@ -203,7 +177,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventDto> getAllByUserId(final long userId, final int from, final int size) {
-//        userStorage.existsByIdOrElseThrow(userId);
         adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst()
@@ -214,24 +187,8 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
-//    @Override
-//    public List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId) {
-////        userStorage.existsByIdOrElseThrow(userId);
-//        adminUserClient.getAll(List.of(userId), 0, 1)
-//                .stream()
-//                .findFirst()
-//                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
-//
-//        eventStorage.existsByIdOrElseThrow(eventId);
-////        return requestStorage.findAllByEventId(eventId).stream()
-////                .map(event -> cs.convert(event, RequestDto.class))
-////                .toList();
-//    return privateUserRequestClient.getAll(userId);
-//    }
-
     @Override
     public EventDto getByIdAndUserId(final long eventId, final long userId) {
-//        userStorage.existsByIdOrElseThrow(userId);
         adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst()
@@ -241,84 +198,6 @@ public class EventServiceImpl implements EventService {
         checkIfTheUserIsTheEventCreator(userId, eventId);
         return cs.convert(event, EventDto.class);
     }
-
-//    @Override
-//    public RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId, final long eventId,
-//                                                                               UpdateRequestByIdsDto update) {
-////        List<Request> requests = requestStorage.findAllByIdInAndEventId(update.requestIds(), eventId);
-//        List<RequestDto> requestDtoList = privateUserRequestClient.getAll(userId)
-//                .stream()
-//                .filter(requestDto -> requestDto.event() == eventId)
-//                .toList();
-//
-//        if (ObjectUtils.isEmpty(requestDtoList)) {
-//            throw new NotFoundException("No requests found for event id " + eventId);
-//        }
-//
-//        requestDtoList
-//                .stream()
-//                .map(requestDto -> )
-//
-//        Map<Long, Event> idToEvent = eventStorage.findAllById(requestDtoList
-//                        .stream()
-//                        .map(requestDto -> requestDto.event())
-//                        .collect(Collectors.toSet()))
-//                .stream()
-//                .collect(Collectors.toMap(event1 -> event1.getId(), event1 -> event1));
-////        Event event = eventStorage.getById(eventId).get();
-//
-////        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
-//        long countRequest = requestDtoList
-//                .stream()
-//                .filter(requestDto -> requestDto.status() == State.CONFIRMED)
-//                .count();
-//
-//        RequestStatusUpdateResultDto result = RequestStatusUpdateResultDto.builder()
-//                .confirmedRequests(new ArrayList<>())
-//                .rejectedRequests(new ArrayList<>())
-//                .build();
-//
-//        List<Request> requestsForSave = new ArrayList<>();
-//
-//        for (RequestDto requestDto : requestDtoList) {
-//            if (requestDto.status() != State.PENDING) {
-//                throw new ConflictException(
-//                        "The status can only be changed for applications that are in a pending state"
-//                );
-//            }
-//
-////            Event event = requestDto.event();
-//            Event event = idToEvent.get(requestDto.event());
-//
-//            if (countRequest >= QEvent.event.getParticipantLimit()) {
-//                throw new ConflictException("The limit on applications for this event has been reached");
-//            }
-//
-//            if (QEvent.event.getParticipantLimit() != 0 && QEvent.event.isRequestModeration()) {
-//                requestDto.setStatus(update.status());
-//
-//                if (countRequest++ == QEvent.event.getParticipantLimit()) {
-//                    requestDto.setStatus(State.CANCELED);
-//                }
-//
-//                requestsForSave.add(requestDto);
-//
-//                if (update.status() == State.CONFIRMED) {
-//                    result.confirmedRequests().add(cs.convert(requestDto, RequestDto.class));
-//                }
-//
-//                if (update.status() == State.REJECTED) {
-//                    result.rejectedRequests().add(cs.convert(requestDto, RequestDto.class));
-//                }
-//            }
-//        }
-//
-//        if (!requestsForSave.isEmpty()) {
-//            requestStorage.saveAll(requestsForSave);
-//        }
-//
-//        return result;
-//    }
 
     @Override
     public EventDto getById(final long eventId, final HttpServletRequest request) {
@@ -413,16 +292,13 @@ public class EventServiceImpl implements EventService {
         endpointHit.ip(request.getRemoteAddr());
         endpointHit.uri(request.getRequestURI());
         endpointHit.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString());
-//
-//        statsApiClient.hit(endpointHit);
+
         statsService.hit(endpointHit);
     }
 
     private void updateStats(Event event, final LocalDateTime startRange, final LocalDateTime endRange,
                              final boolean unique) {
 
-//        List<ViewStats> stats = statsApiClient.getStats(startRange.toString(), endRange.toString(), List.of("/events/" + event.getId()), unique)
-//                .getBody();
         List<ViewStats> stats = statsService.getStats(startRange.toString(),
                 endRange.toString(),
                 List.of("/events/" + event.getId()),
@@ -434,7 +310,6 @@ public class EventServiceImpl implements EventService {
             views += stat.getHits();
         }
 
-//        int confirmedRequests = requestStorage.countByEventIdAndStatus(event.getId(), State.CONFIRMED);
         long confirmedRequests = privateUserRequestClient.getRequestsByEventId(event.getId())
                 .stream()
                 .filter(requestDto -> requestDto.status() == State.CONFIRMED)

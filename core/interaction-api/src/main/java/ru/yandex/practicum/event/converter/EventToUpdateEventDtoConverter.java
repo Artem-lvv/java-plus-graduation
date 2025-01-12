@@ -3,14 +3,9 @@ package ru.yandex.practicum.event.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.category.converter.CategoryToCategoryDto;
 import ru.yandex.practicum.event.model.Event;
-import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
-import ru.yandex.practicum.location.converter.LocationToLocationDtoConverter;
 import ru.yandex.practicum.location.model.dto.LocationLatAndLonDto;
-import ru.yandex.practicum.state.StateAction;
-import ru.yandex.practicum.user.converter.UserToUserWithoutEmailDtoConverter;
 
 @Component
 @RequiredArgsConstructor

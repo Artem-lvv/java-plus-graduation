@@ -1,6 +1,5 @@
 package ru.yandex.practicum.service;
 
-import jakarta.validation.constraints.Positive;
 import ru.yandex.practicum.request.model.dto.RequestDto;
 import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
 import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
@@ -20,4 +19,6 @@ public interface RequestService {
                                                                         UpdateRequestByIdsDto updateRequestByIdsDto);
 
     List<RequestDto> getRequestsByEventId(long eventId);
+
+    List<RequestDto> getAllRequestsByEventInitiatorIdAndEventId(long userId, long eventId);
 }

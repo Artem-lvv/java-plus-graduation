@@ -35,25 +35,18 @@ public class RequestServiceImpl implements RequestService {
     @Qualifier("mvcConversionService")
     private final ConversionService cs;
     private final RequestStorage requestStorage;
-//    private final UserStorage userStorage;
     private final AdminUserClient adminUserClient;
-//    private final EventStorage eventStorage;
     private final AdminEventClient adminEventClient;
 
     @Override
     public RequestDto create(final long userId, final long eventId) {
         requestStorage.ifExistsByRequesterIdAndEventIdThenThrow(userId, eventId);
-//        User user = userStorage.getByIdOrElseThrow(userId);
         UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst().orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
 
         User user = cs.convert(userDto, User.class);
 
-//        Event event = eventStorage.getByIdOrElseThrow(eventId);
-//        EventDto eventDto = adminEventClient.getAll(AdminParameter.builder()
-//                        .events(List.of(eventId))
-//                        .build())
         EventDto eventDto = adminEventClient.getAll(null,
                         null,
                         null,
@@ -89,7 +82,6 @@ public class RequestServiceImpl implements RequestService {
 
         if (request.getStatus() == State.CONFIRMED) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-//            eventStorage.save(event);
             UpdateEventDto updateEventDto = cs.convert(event, UpdateEventDto.class);
             adminEventClient.update(updateEventDto, event.getId());
         }
@@ -106,7 +98,6 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto cancel(final long userId, final long requestId) {
-//        userStorage.existsByIdOrElseThrow(userId);
         adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst().orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
@@ -116,7 +107,6 @@ public class RequestServiceImpl implements RequestService {
         if (request.getStatus() == State.CONFIRMED) {
             Event event = request.getEvent();
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);
-//            eventStorage.save(event);
             adminEventClient.update(cs.convert(event, UpdateEventDto.class), event.getId());
         }
 
@@ -176,10 +166,6 @@ public class RequestServiceImpl implements RequestService {
 
                 if (updateRequestByIdsDto.status() == State.CONFIRMED) {
                     result.confirmedRequests().add(cs.convert(request, RequestDto.class));
-
-                    // доб
-//                    event.setParticipantLimit(event.getConfirmedRequests() + 1);
-//                    adminEventClient.update(cs.convert(event, UpdateEventDto.class), event.getId());
                 }
 
                 if (updateRequestByIdsDto.status() == State.REJECTED) {
@@ -198,6 +184,14 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<RequestDto> getRequestsByEventId(long eventId) {
         return requestStorage.findAllByEventId(eventId)
+                .stream()
+                .map(request -> cs.convert(request, RequestDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<RequestDto> getAllRequestsByEventInitiatorIdAndEventId(long userId, long eventId) {
+        return requestStorage.findAllByEvent_Initiator_IdAndEvent_Id(userId, eventId)
                 .stream()
                 .map(request -> cs.convert(request, RequestDto.class))
                 .toList();

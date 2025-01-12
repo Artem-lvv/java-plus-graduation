@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.exception.ErrorHandler;
 
 @Configuration
-public class ErrorHundlerConfig {
+public class ErrorHandlerConfig {
 
     @Bean
     ErrorHandler errorHandler() {

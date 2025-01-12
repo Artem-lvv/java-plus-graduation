@@ -1,16 +1,24 @@
 package ru.yandex.practicum.controller;
 
-import ru.yandex.practicum.request.model.Request;
-import ru.yandex.practicum.request.model.dto.RequestDto;
-import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
-import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
-import ru.yandex.practicum.service.RequestService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.request.model.Request;
+import ru.yandex.practicum.request.model.dto.RequestDto;
+import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
+import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
+import ru.yandex.practicum.service.RequestService;
 
 import java.util.List;
 
@@ -49,7 +57,7 @@ public class PrivateUserRequestController {
                                                           @PathVariable @Positive final long eventId) {
         log.info("Request to receive requests for participation in an {} by id - {} by user by id - {}",
                 SIMPLE_NAME, eventId, userId);
-        return requestService.getRequestsByUserIdAndEventId(userId, eventId);
+        return requestService.getAllRequestsByEventInitiatorIdAndEventId(userId, eventId);
     }
 
     @PatchMapping("/users/{userId}/events/{eventId}/requests")

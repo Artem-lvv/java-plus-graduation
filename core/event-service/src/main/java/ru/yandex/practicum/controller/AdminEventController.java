@@ -5,13 +5,17 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.event.model.AdminParameter;
+import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.service.EventService;
-
-import ru.yandex.practicum.event.model.Event;
 
 import java.util.List;
 
@@ -36,7 +40,4 @@ public class AdminEventController {
         log.info("Request by the administrator to change an {} by id - {} - {}", SIMPLE_NAME, eventId, updateEventDto);
         return eventService.updateByAdmin(eventId, updateEventDto);
     }
-
-//    @GetMapping
-//    public List<EventDto> get(@Valid final AdminParameter adminParameter) {}
 }

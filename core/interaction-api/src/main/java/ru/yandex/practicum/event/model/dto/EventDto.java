@@ -1,8 +1,8 @@
 package ru.yandex.practicum.event.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import ru.yandex.practicum.category.model.dto.CategoryDto;
 import lombok.Builder;
+import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.state.State;
 import ru.yandex.practicum.user.model.dto.UserWithoutEmailDto;

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:ewm-main}
+    url: jdbc:postgresql://localhost:5435/${POSTGRES_DB:compilation-db}
 #    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}

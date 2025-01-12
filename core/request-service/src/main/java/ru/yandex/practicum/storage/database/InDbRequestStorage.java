@@ -91,4 +91,9 @@ public class InDbRequestStorage implements RequestStorage {
             throw new ConflictException(SIMPLE_NAME.formatted(" cannot re-apply for the same event : %d", eventId));
         }
     }
+
+    @Override
+    public List<Request> findAllByEvent_Initiator_IdAndEvent_Id(long eventInitiatorId, long eventId) {
+        return requestRepository.findAllByEvent_Initiator_IdAndEvent_Id(eventInitiatorId, eventId);
+    }
 }

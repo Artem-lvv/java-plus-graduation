@@ -49,10 +49,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(final long id) {
-//        List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter
-//                .builder()
-//                .categories(List.of(id))
-//                .build());
         List<EventDto> eventDtos = adminEventClient.getAll(null,
                 null,
                 List.of(id),

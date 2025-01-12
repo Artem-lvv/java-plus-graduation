@@ -16,10 +16,7 @@ import ru.yandex.practicum.user.model.dto.UserDto;
 import java.util.List;
 
 @FeignClient(name = "${admin.user.service.name:USER-SERVICE}",
-        url = "${admin.user.service.url}"
-//        ,
-//        configuration = FeignOkHttpConfig.class
-)
+        url = "${admin.user.service.url}")
 public interface AdminUserClient {
 
     @PostMapping("/admin/users")
