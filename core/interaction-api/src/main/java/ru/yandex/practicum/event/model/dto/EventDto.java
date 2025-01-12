@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 public record EventDto(
         long id,
         String annotation,
-        CategoryDto category,
+        long category,
         int confirmedRequests,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime createdOn,
         String description,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime eventDate,
-        UserWithoutEmailDto initiator,
-        LocationDto location,
+        long initiator,
+        long location,
         boolean paid,
         int participantLimit,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

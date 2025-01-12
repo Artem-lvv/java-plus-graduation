@@ -60,7 +60,7 @@ public class RequestServiceImpl implements RequestService {
 
         Event event = cs.convert(eventDto, Event.class);
 
-        if (event.getInitiator().getId() == user.getId()) {
+        if (event.getInitiator() == user.getId()) {
             throw new ConflictException("%s : can`t add a request to your own: %d eventId: %d".formatted(SIMPLE_NAME,
                     userId, eventId));
         }

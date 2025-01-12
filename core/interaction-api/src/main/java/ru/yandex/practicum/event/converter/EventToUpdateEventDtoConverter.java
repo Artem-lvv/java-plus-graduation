@@ -13,13 +13,14 @@ public class EventToUpdateEventDtoConverter implements Converter<Event, UpdateEv
     @Override
     public UpdateEventDto convert(final Event source) {
         return new UpdateEventDto(source.getAnnotation(),
-                source.getCategory().getId(),
+                source.getCategory(),
                 source.getDescription(),
                 source.getEventDate(),
-                LocationLatAndLonDto.builder()
-                        .lat(source.getLocation().getLat())
-                        .lon(source.getLocation().getLon())
-                        .build(),
+//                LocationLatAndLonDto.builder()
+//                        .lat(source.getLocation().getLat())
+//                        .lon(source.getLocation().getLon())
+//                        .build(),
+                null,
                 source.isPaid(),
                 source.getParticipantLimit(),
                 source.isRequestModeration(),

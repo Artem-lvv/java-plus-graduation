@@ -94,7 +94,7 @@ public class EventServiceImpl implements EventService {
 
         if (updateEventDto.category() != 0) {
             CategoryDto categoryDto = publicCategoryClient.getById(updateEventDto.category());
-            eventInStorage.setCategory(cs.convert(categoryDto, Category.class));
+            eventInStorage.setCategory(categoryDto.id());
         }
 
         return eventInStorage;
@@ -129,7 +129,7 @@ public class EventServiceImpl implements EventService {
         if (!ObjectUtils.isEmpty(updateEventDto.location())) {
             LocationDto locationDto = getOrCreateLocationDtoByCoordinates(updateEventDto.location().lat(),
                     updateEventDto.location().lon());
-            eventInStorage.setLocation(cs.convert(locationDto, Location.class));
+            eventInStorage.setLocation(locationDto.id());
         }
 
         return cs.convert(eventStorage.save(update(eventInStorage, updateEventDto)), EventDto.class);
@@ -153,9 +153,9 @@ public class EventServiceImpl implements EventService {
 
         Event event = cs.convert(createEventDto, Event.class);
 
-        event.setInitiator(user);
-        event.setCategory(category);
-        event.setLocation(location);
+        event.setInitiator(user.getId());
+        event.setCategory(category.getId());
+        event.setLocation(location.getId());
         event.setCreatedOn(LocalDateTime.now());
         event.setState(State.PENDING);
 
@@ -223,7 +223,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if (!ObjectUtils.isEmpty(publicParameter.getCategories())) {
-            predicate = predicate.and(event.category.id.in(publicParameter.getCategories()));
+            predicate = predicate.and(event.category.in(publicParameter.getCategories()));
         }
         if (!ObjectUtils.isEmpty(publicParameter.getPaid())) {
             predicate = predicate.and(event.paid.eq(publicParameter.getPaid()));
@@ -272,7 +272,7 @@ public class EventServiceImpl implements EventService {
 
         checkEventIsPublished(eventInStorage.getState());
 
-        if (eventInStorage.getInitiator().getId() != userId) {
+        if (eventInStorage.getInitiator() != userId) {
             throw new ConflictException("The initiator does not belong to this event");
         }
 
@@ -374,7 +374,7 @@ public class EventServiceImpl implements EventService {
         BooleanExpression predicate = event.isNotNull();
 
         if (!ObjectUtils.isEmpty(adminParameter.getUsers())) {
-            predicate = predicate.and(event.initiator.id.in(adminParameter.getUsers()));
+            predicate = predicate.and(event.initiator.in(adminParameter.getUsers()));
         }
 
         if (!ObjectUtils.isEmpty(adminParameter.getStates())) {
@@ -382,7 +382,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if (!ObjectUtils.isEmpty(adminParameter.getCategories())) {
-            predicate = predicate.and(event.category.id.in(adminParameter.getCategories()));
+            predicate = predicate.and(event.category.in(adminParameter.getCategories()));
         }
 
         predicate = predicate.and(event.createdOn.between(adminParameter.getRangeStart(), adminParameter.getRangeEnd()));

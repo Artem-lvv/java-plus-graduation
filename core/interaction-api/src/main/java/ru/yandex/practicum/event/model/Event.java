@@ -24,9 +24,9 @@ public class Event {
     @Column(nullable = false, length = 2000)
     private String annotation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private Category category;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(nullable = false)
+    private long category;
 
     @Column(nullable = false)
     private int confirmedRequests;
@@ -40,15 +40,15 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime eventDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(nullable = false)
     @ToString.Exclude
-    private User initiator;
+    private long initiator;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(nullable = false)
     @ToString.Exclude
-    private Location location;
+    private long location;
 
     @Column(nullable = false)
     private boolean paid;
