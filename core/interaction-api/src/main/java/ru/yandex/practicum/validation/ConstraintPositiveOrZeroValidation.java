@@ -8,6 +8,6 @@ import java.util.Objects;
 public class ConstraintPositiveOrZeroValidation implements ConstraintValidator<ConstraintPositiveOrZero, Integer> {
     @Override
     public boolean isValid(Integer number, ConstraintValidatorContext constraintValidatorContext) {
-        return Objects.isNull(number) || number > 0;
+        return Objects.isNull(number) || number > 0 || number == 0;
     }
 }

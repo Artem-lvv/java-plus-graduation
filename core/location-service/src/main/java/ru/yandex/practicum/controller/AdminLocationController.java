@@ -49,4 +49,9 @@ public class AdminLocationController {
         log.info("Request to delete a {} by id - {}", SIMPLE_NAME, locId);
         locationService.deleteById(locId);
     }
+
+    @GetMapping("/lat/{lat}/lon/{lon}")
+    public LocationDto getByCoordinates(@PathVariable final double lat, @PathVariable double lon) {
+        return locationService.getByCoordinates(lat, lon);
+    }
 }

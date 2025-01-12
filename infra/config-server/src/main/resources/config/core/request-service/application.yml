@@ -17,6 +17,11 @@ spring:
       hibernate:
         format_sql: true  # Форматирование SQL-запросов для удобочитаемости
 
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
+
 server:
   port: 0
 
@@ -31,7 +36,6 @@ admin:
   events:
     service:
       url:
-
 
 resilience4j.circuitbreaker:
   instances:

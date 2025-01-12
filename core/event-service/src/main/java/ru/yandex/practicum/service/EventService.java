@@ -22,13 +22,13 @@ public interface EventService {
 
     List<EventDto> getAllByUserId(final long userId, final int from, final int size);
 
-    List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId);
+//    List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId);
 
     EventDto getByIdAndUserId(final long eventId, final long userId);
 
-    RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId,
-                                                                        final long eventId,
-                                                                        final UpdateRequestByIdsDto update);
+//    RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId,
+//                                                                        final long eventId,
+//                                                                        final UpdateRequestByIdsDto update);
 
     EventDto getById(final long eventId, final HttpServletRequest request);
 

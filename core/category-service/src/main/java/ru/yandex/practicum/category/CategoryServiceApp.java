@@ -6,7 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import ru.yandex.practicum.AdminEventClient;
 
-@SpringBootApplication
+@SpringBootApplication //(scanBasePackages = {"ru.yandex.practicum.exception"})
 @EnableDiscoveryClient
 @EnableFeignClients(clients = {AdminEventClient.class})
 public class CategoryServiceApp {

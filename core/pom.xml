@@ -24,6 +24,7 @@
         <module>user-service-api</module>
         <module>category-service-api</module>
         <module>request-service-api</module>
+        <module>location-service-api</module>
     </modules>
 
 </project>

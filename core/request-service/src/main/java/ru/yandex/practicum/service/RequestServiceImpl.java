@@ -1,5 +1,6 @@
 package ru.yandex.practicum.service;
 
+import org.springframework.util.ObjectUtils;
 import ru.yandex.practicum.AdminEventClient;
 import ru.yandex.practicum.AdminUserClient;
 import ru.yandex.practicum.event.model.AdminParameter;
@@ -10,6 +11,8 @@ import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.request.model.Request;
 import ru.yandex.practicum.request.model.dto.RequestDto;
+import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
+import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 import ru.yandex.practicum.state.State;
 import ru.yandex.practicum.storage.RequestStorage;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import ru.yandex.practicum.user.model.User;
 import ru.yandex.practicum.user.model.dto.UserDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -47,9 +51,17 @@ public class RequestServiceImpl implements RequestService {
         User user = cs.convert(userDto, User.class);
 
 //        Event event = eventStorage.getByIdOrElseThrow(eventId);
-        EventDto eventDto = adminEventClient.getAll(AdminParameter.builder()
-                        .events(List.of(eventId))
-                        .build())
+//        EventDto eventDto = adminEventClient.getAll(AdminParameter.builder()
+//                        .events(List.of(eventId))
+//                        .build())
+        EventDto eventDto = adminEventClient.getAll(null,
+                        null,
+                        null,
+                        List.of(eventId),
+                        null,
+                        null,
+                        0
+                        ,1)
                 .stream()
                 .findFirst().orElseThrow(() -> new NotFoundException(Event.class.getSimpleName(), eventId));
 
@@ -78,7 +90,8 @@ public class RequestServiceImpl implements RequestService {
         if (request.getStatus() == State.CONFIRMED) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
 //            eventStorage.save(event);
-            adminEventClient.update(cs.convert(event, UpdateEventDto.class), event.getId());
+            UpdateEventDto updateEventDto = cs.convert(event, UpdateEventDto.class);
+            adminEventClient.update(updateEventDto, event.getId());
         }
 
         return cs.convert(requestStorage.save(request), RequestDto.class);
@@ -110,5 +123,83 @@ public class RequestServiceImpl implements RequestService {
         request.setStatus(State.CANCELED);
 
         return cs.convert(requestStorage.save(request), RequestDto.class);
+    }
+
+    @Override
+    public List<RequestDto> getRequestsByUserIdAndEventId(long userId, long eventId) {
+        return requestStorage.findAllByRequesterIdAndEventId(userId, eventId)
+                .stream()
+                .map(request -> cs.convert(request, RequestDto.class))
+                .toList();
+    }
+
+    @Override
+    public RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(long userId, long eventId,
+                                                                               UpdateRequestByIdsDto updateRequestByIdsDto) {
+
+        List<Request> requests = requestStorage.findAllByIdInAndEventId(updateRequestByIdsDto.requestIds(), eventId);
+
+        if (ObjectUtils.isEmpty(requests)) {
+            throw new NotFoundException("No requests found for event id " + eventId);
+        }
+
+        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
+
+        RequestStatusUpdateResultDto result = RequestStatusUpdateResultDto.builder()
+                .confirmedRequests(new ArrayList<>())
+                .rejectedRequests(new ArrayList<>())
+                .build();
+
+        List<Request> requestsForSave = new ArrayList<>();
+
+        for (Request request : requests) {
+            if (request.getStatus() != State.PENDING) {
+                throw new ConflictException(
+                        "The status can only be changed for applications that are in a pending state"
+                );
+            }
+
+            Event event = request.getEvent();
+
+            if (countRequest >= event.getParticipantLimit()) {
+                throw new ConflictException("The limit on applications for this event has been reached");
+            }
+
+            if (event.getParticipantLimit() != 0 && event.isRequestModeration()) {
+                request.setStatus(updateRequestByIdsDto.status());
+
+                if (countRequest++ == event.getParticipantLimit()) {
+                    request.setStatus(State.CANCELED);
+                }
+
+                requestsForSave.add(request);
+
+                if (updateRequestByIdsDto.status() == State.CONFIRMED) {
+                    result.confirmedRequests().add(cs.convert(request, RequestDto.class));
+
+                    // доб
+//                    event.setParticipantLimit(event.getConfirmedRequests() + 1);
+//                    adminEventClient.update(cs.convert(event, UpdateEventDto.class), event.getId());
+                }
+
+                if (updateRequestByIdsDto.status() == State.REJECTED) {
+                    result.rejectedRequests().add(cs.convert(request, RequestDto.class));
+                }
+            }
+        }
+
+        if (!requestsForSave.isEmpty()) {
+            requestStorage.saveAll(requestsForSave);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<RequestDto> getRequestsByEventId(long eventId) {
+        return requestStorage.findAllByEventId(eventId)
+                .stream()
+                .map(request -> cs.convert(request, RequestDto.class))
+                .toList();
     }
 }

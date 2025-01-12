@@ -51,23 +51,7 @@ public class PrivateEventController {
         return eventService.getByIdAndUserId(eventId, userId);
     }
 
-    @GetMapping("/{eventId}/requests")
-    public List<RequestDto> getRequestsByUserIdAndEventId(@PathVariable @Positive final long userId,
-                                                          @PathVariable @Positive final long eventId) {
-        log.info("Request to receive requests for participation in an {} by id - {} by user by id - {}",
-                SIMPLE_NAME, eventId, userId);
-        return eventService.getRequestsByUserIdAndEventId(userId, eventId);
-    }
 
-    @PatchMapping("/{eventId}/requests")
-    public RequestStatusUpdateResultDto updateRequestsByUserAndEvent(
-            @RequestBody final UpdateRequestByIdsDto updateEventStatusByRequestIds,
-            @PathVariable @Positive final long userId,
-            @PathVariable @Positive final long eventId) {
-        log.info("Request to update the status of requests for an {} by id - {} by user with id - {} - {}",
-                SIMPLE_NAME, eventId, userId, updateEventStatusByRequestIds);
-        return eventService.updateRequestsStatusByUserIdAndEventId(userId, eventId, updateEventStatusByRequestIds);
-    }
 
     @PatchMapping("/{eventId}")
     public EventDto update(@PathVariable @Positive final long userId,

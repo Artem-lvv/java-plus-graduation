@@ -1,7 +1,9 @@
 package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.AdminCategoryClient;
+import ru.yandex.practicum.AdminLocationClient;
 import ru.yandex.practicum.AdminUserClient;
+//import ru.yandex.practicum.PrivateUserRequestClient;
 import ru.yandex.practicum.PrivateUserRequestClient;
 import ru.yandex.practicum.PublicCategoryClient;
 import ru.yandex.practicum.category.model.Category;
@@ -19,12 +21,15 @@ import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
+import ru.yandex.practicum.event.model.QEvent;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.location.model.Location;
+import ru.yandex.practicum.location.model.dto.CreateLocationDto;
+import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.request.model.Request;
 import ru.yandex.practicum.request.model.dto.RequestDto;
 import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
@@ -44,8 +49,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.event.model.QEvent.event;
 
@@ -66,6 +74,7 @@ public class EventServiceImpl implements EventService {
 //    private final RequestStorage requestStorage;
     private final PrivateUserRequestClient privateUserRequestClient;
 //    private final StatsServiceApiClient statsApiClient;
+    private final AdminLocationClient adminLocationClient;
 
     @Override
     public List<EventDto> getAllByAdmin(final AdminParameter adminParameter) {
@@ -137,10 +146,9 @@ public class EventServiceImpl implements EventService {
         }
 
         if (!ObjectUtils.isEmpty(updateEventDto.location())) {
-
-//            eventInStorage.setLocation(cs.convert(
-//                    locationService.getByCoordinatesOrElseCreate(updateEventDto.location()), Location.class)
-//            );
+            LocationDto locationDto = getOrCreateLocationDtoByCoordinates(updateEventDto.location().lat(),
+                    updateEventDto.location().lon());
+            eventInStorage.setLocation(cs.convert(locationDto, Location.class));
         }
 
         return cs.convert(eventStorage.save(update(eventInStorage, updateEventDto)), EventDto.class);
@@ -160,18 +168,37 @@ public class EventServiceImpl implements EventService {
         CategoryDto categoryDto = publicCategoryClient.getById(createEventDto.category());
         final Category category = cs.convert(categoryDto, Category.class);
 
-//        final Location location = cs.convert(locationService.getByCoordinatesOrElseCreate(createEventDto.location()),
+//        final Location location = cs.convert(a.getByCoordinatesOrElseCreate(createEventDto.location()),
 //                Location.class);
+//        getOrCreateLocationDtoByCoordinates(createEventDto.location().lat(), createEventDto.location().lon());
+
+        LocationDto locationDto = getOrCreateLocationDtoByCoordinates(createEventDto.location().lat(),
+                createEventDto.location().lon());
+        Location location = cs.convert(locationDto, Location.class);
 
         Event event = cs.convert(createEventDto, Event.class);
 
         event.setInitiator(user);
         event.setCategory(category);
-//        event.setLocation(location);
+        event.setLocation(location);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(State.PENDING);
 
         return cs.convert(eventStorage.save(event), EventDto.class);
+    }
+
+    private LocationDto getOrCreateLocationDtoByCoordinates(double lat, double lon) {
+        LocationDto locationDto = adminLocationClient.getByCoordinates(lat, lon);
+
+        if (Objects.isNull(locationDto)) {
+            locationDto = adminLocationClient.create(CreateLocationDto.builder()
+                    .lat(lat)
+                    .lon(lon)
+                    .name("lat " + lat + " lon " + lon)
+                    .radius(0.0)
+                    .build());
+        }
+        return locationDto;
     }
 
     @Override
@@ -187,20 +214,20 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
-    @Override
-    public List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId) {
-//        userStorage.existsByIdOrElseThrow(userId);
-        adminUserClient.getAll(List.of(userId), 0, 1)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
-
-        eventStorage.existsByIdOrElseThrow(eventId);
-//        return requestStorage.findAllByEventId(eventId).stream()
-//                .map(event -> cs.convert(event, RequestDto.class))
-//                .toList();
-    return privateUserRequestClient.getAll(userId);
-    }
+//    @Override
+//    public List<RequestDto> getRequestsByUserIdAndEventId(final long userId, final long eventId) {
+////        userStorage.existsByIdOrElseThrow(userId);
+//        adminUserClient.getAll(List.of(userId), 0, 1)
+//                .stream()
+//                .findFirst()
+//                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+//
+//        eventStorage.existsByIdOrElseThrow(eventId);
+////        return requestStorage.findAllByEventId(eventId).stream()
+////                .map(event -> cs.convert(event, RequestDto.class))
+////                .toList();
+//    return privateUserRequestClient.getAll(userId);
+//    }
 
     @Override
     public EventDto getByIdAndUserId(final long eventId, final long userId) {
@@ -215,68 +242,83 @@ public class EventServiceImpl implements EventService {
         return cs.convert(event, EventDto.class);
     }
 
-    @Override
-    public RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId, final long eventId,
-                                                                               UpdateRequestByIdsDto update) {
-//        List<Request> requests = requestStorage.findAllByIdInAndEventId(update.requestIds(), eventId);
-        List<RequestDto> requestDtoList = privateUserRequestClient.getAll(userId)
-                .stream()
-                .filter(requestDto -> requestDto.event() == eventId)
-                .toList();
-
-        if (ObjectUtils.isEmpty(requestDtoList)) {
-            throw new NotFoundException("No requests found for event id " + eventId);
-        }
-
-        Event event = eventStorage.getById(eventId).get();
-
-//        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
-
-        RequestStatusUpdateResultDto result = RequestStatusUpdateResultDto.builder()
-                .confirmedRequests(new ArrayList<>())
-                .rejectedRequests(new ArrayList<>())
-                .build();
-
-        List<Request> requestsForSave = new ArrayList<>();
-
-        for (RequestDto request : requestDtoList) {
-            if (request.status() != State.PENDING) {
-                throw new ConflictException(
-                        "The status can only be changed for applications that are in a pending state"
-                );
-            }
-
-//            Event event = request.getEvent();
+//    @Override
+//    public RequestStatusUpdateResultDto updateRequestsStatusByUserIdAndEventId(final long userId, final long eventId,
+//                                                                               UpdateRequestByIdsDto update) {
+////        List<Request> requests = requestStorage.findAllByIdInAndEventId(update.requestIds(), eventId);
+//        List<RequestDto> requestDtoList = privateUserRequestClient.getAll(userId)
+//                .stream()
+//                .filter(requestDto -> requestDto.event() == eventId)
+//                .toList();
 //
-////            if (countRequest >= event.getParticipantLimit()) {
-////                throw new ConflictException("The limit on applications for this event has been reached");
-////            }
+//        if (ObjectUtils.isEmpty(requestDtoList)) {
+//            throw new NotFoundException("No requests found for event id " + eventId);
+//        }
 //
-//            if (event.getParticipantLimit() != 0 && event.isRequestModeration()) {
-//                request.setStatus(update.status());
+//        requestDtoList
+//                .stream()
+//                .map(requestDto -> )
 //
-////                if (countRequest++ == event.getParticipantLimit()) {
-////                    request.setStatus(State.CANCELED);
-////                }
+//        Map<Long, Event> idToEvent = eventStorage.findAllById(requestDtoList
+//                        .stream()
+//                        .map(requestDto -> requestDto.event())
+//                        .collect(Collectors.toSet()))
+//                .stream()
+//                .collect(Collectors.toMap(event1 -> event1.getId(), event1 -> event1));
+////        Event event = eventStorage.getById(eventId).get();
 //
-//                requestsForSave.add(request);
+////        int countRequest = requestStorage.countByEventIdAndStatus(eventId, State.CONFIRMED);
+//        long countRequest = requestDtoList
+//                .stream()
+//                .filter(requestDto -> requestDto.status() == State.CONFIRMED)
+//                .count();
+//
+//        RequestStatusUpdateResultDto result = RequestStatusUpdateResultDto.builder()
+//                .confirmedRequests(new ArrayList<>())
+//                .rejectedRequests(new ArrayList<>())
+//                .build();
+//
+//        List<Request> requestsForSave = new ArrayList<>();
+//
+//        for (RequestDto requestDto : requestDtoList) {
+//            if (requestDto.status() != State.PENDING) {
+//                throw new ConflictException(
+//                        "The status can only be changed for applications that are in a pending state"
+//                );
+//            }
+//
+////            Event event = requestDto.event();
+//            Event event = idToEvent.get(requestDto.event());
+//
+//            if (countRequest >= QEvent.event.getParticipantLimit()) {
+//                throw new ConflictException("The limit on applications for this event has been reached");
+//            }
+//
+//            if (QEvent.event.getParticipantLimit() != 0 && QEvent.event.isRequestModeration()) {
+//                requestDto.setStatus(update.status());
+//
+//                if (countRequest++ == QEvent.event.getParticipantLimit()) {
+//                    requestDto.setStatus(State.CANCELED);
+//                }
+//
+//                requestsForSave.add(requestDto);
 //
 //                if (update.status() == State.CONFIRMED) {
-//                    result.confirmedRequests().add(cs.convert(request, RequestDto.class));
+//                    result.confirmedRequests().add(cs.convert(requestDto, RequestDto.class));
 //                }
 //
 //                if (update.status() == State.REJECTED) {
-//                    result.rejectedRequests().add(cs.convert(request, RequestDto.class));
+//                    result.rejectedRequests().add(cs.convert(requestDto, RequestDto.class));
 //                }
 //            }
 //        }
 //
 //        if (!requestsForSave.isEmpty()) {
 //            requestStorage.saveAll(requestsForSave);
-        }
-
-        return result;
-    }
+//        }
+//
+//        return result;
+//    }
 
     @Override
     public EventDto getById(final long eventId, final HttpServletRequest request) {
@@ -393,9 +435,13 @@ public class EventServiceImpl implements EventService {
         }
 
 //        int confirmedRequests = requestStorage.countByEventIdAndStatus(event.getId(), State.CONFIRMED);
+        long confirmedRequests = privateUserRequestClient.getRequestsByEventId(event.getId())
+                .stream()
+                .filter(requestDto -> requestDto.status() == State.CONFIRMED)
+                .count();
 
         event.setViews(views);
-//        event.setConfirmedRequests(confirmedRequests);
+        event.setConfirmedRequests((int) confirmedRequests);
     }
 
     private void checkIfTheUserIsTheEventCreator(final long userId, final long eventId) {
@@ -412,7 +458,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> checkEvents(final List<Long> eventsId) {
         return ObjectUtils.isEmpty(eventsId) ? null
-                : ((root, query, criteriaBuilder) -> root.get("event").get("id").in(eventsId));
+                : ((root, query, criteriaBuilder) -> root.get("id").in(eventsId));
     }
 
     private Specification<Event> checkByUserIds(final List<Long> userIds) {

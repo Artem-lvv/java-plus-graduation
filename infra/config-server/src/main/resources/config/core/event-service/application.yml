@@ -28,7 +28,9 @@ admin:
   user:
     service:
       url:
-
+  locations:
+    service:
+      url:
 public:
   category:
     service:

@@ -20,7 +20,8 @@ spring:
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
-            - Path= /events/**, /users/{userId}/events/**, /admin/events/**
+            - Path= /events/**, /users/{userId}/events, /users/{userId}/events/{eventsID}, /admin/events,
+              /admin/events/{eventId}
 
         - id: location-service
           uri: lb://LOCATION-SERVICE
@@ -30,7 +31,8 @@ spring:
         - id: request-service
           uri: lb://REQUEST-SERVICE
           predicates:
-            - Path= /users/{userId}/requests, /users/{userId}/requests/{requestId}/cancel,
+            - Path= /users/{userId}/requests/**, /users/{userId}/requests/{requestId}/cancel,
+              /users/{userId}/events/{eventId}/requests, requests/events/{eventId}
 
         - id: user-service
           uri: lb://USER-SERVICE

@@ -4,6 +4,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.constraints.Positive;
 import ru.yandex.practicum.request.model.dto.RequestDto;
+import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
+import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 
 import java.util.List;
 
@@ -11,13 +13,26 @@ import java.util.List;
 public interface PrivateUserRequestClient {
 
     @PostMapping("/users/{userId}/requests")
-    RequestDto create(@PathVariable @Positive long userId,
-                      @RequestParam @Positive long eventId);
+    RequestDto createRequest(@PathVariable @Positive long userId,
+                             @RequestParam @Positive long eventId);
 
     @GetMapping("/users/{userId}/requests")
-    List<RequestDto> getAll(@PathVariable @Positive long userId);
+    List<RequestDto> getAllRequests(@PathVariable @Positive long userId);
 
     @PatchMapping("/users/{userId}/requests/{requestId}/cancel")
-    RequestDto cancel(@PathVariable @Positive long userId,
-                      @PathVariable @Positive long requestId);
+    RequestDto cancelRequest(@PathVariable @Positive long userId,
+                             @PathVariable @Positive long requestId);
+
+    @GetMapping("/users/{userId}/events/{eventId}/requests")
+    List<RequestDto> getRequestsByUserIdAndEventId(@PathVariable @Positive long userId,
+                                                   @PathVariable @Positive long eventId);
+
+    @PatchMapping("/users/{userId}/events/{eventId}/requests")
+    RequestStatusUpdateResultDto updateRequestsByUserAndEvent(
+            @RequestBody UpdateRequestByIdsDto updateRequestByIdsDto,
+            @PathVariable @Positive long userId,
+            @PathVariable @Positive long eventId);
+
+    @GetMapping("requests/events/{eventId}")
+    List<RequestDto> getRequestsByEventId(@PathVariable @Positive long eventId);
 }

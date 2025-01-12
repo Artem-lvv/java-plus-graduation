@@ -34,11 +34,19 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = cs.convert(createCompilationDto, Compilation.class);
 
         if (!ObjectUtils.isEmpty(createCompilationDto.events())) {
-            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
-                    .events(createCompilationDto.events().stream().toList())
-                    .build());
+//            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
+//                    .events(createCompilationDto.events().stream().toList())
+//                    .build());
+            List<EventDto> eventDtos = adminEventClient.getAll(null,
+                    null,
+                    null,
+                    createCompilationDto.events().stream().toList(),
+                    null,
+                    null,
+                    0,
+                    10);
 
-           final List<Event> events = eventDtos
+            final List<Event> events = eventDtos
                     .stream()
                     .map(eventDto -> cs.convert(eventDto, Event.class))
                     .toList();
@@ -67,9 +75,18 @@ public class CompilationServiceImpl implements CompilationService {
 
         if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
 
-            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
-                    .events(updateCompilationDto.events().stream().toList())
-                    .build());
+//            List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter.builder()
+//                    .events(updateCompilationDto.events().stream().toList())
+//                    .build());
+
+            List<EventDto> eventDtos = adminEventClient.getAll(null,
+                    null,
+                    null,
+                    updateCompilationDto.events().stream().toList(),
+                    null,
+                    null,
+                    0,
+                    Integer.MAX_VALUE);
 
             final List<Event> events = eventDtos
                     .stream()

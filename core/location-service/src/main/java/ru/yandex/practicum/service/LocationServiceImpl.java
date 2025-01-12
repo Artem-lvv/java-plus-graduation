@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -77,5 +78,15 @@ public class LocationServiceImpl implements LocationService {
         return locationStorage.findAllByNameContainingIgnoreCase(text, from, size).stream()
                 .map(location -> cs.convert(location, LocationDto.class))
                 .toList();
+    }
+
+    @Override
+    public LocationDto getByCoordinates(double lat, double lon) {
+        Optional<Location> byCoordinates = locationStorage.getByCoordinates(lat, lon);
+
+        if (byCoordinates.isPresent()) {
+            return cs.convert(byCoordinates.get(), LocationDto.class);
+        } else {}
+        return null;
     }
 }

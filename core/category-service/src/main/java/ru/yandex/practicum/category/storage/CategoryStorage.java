@@ -17,4 +17,6 @@ public interface CategoryStorage {
     Category getByIdOrElseThrow(final long id);
 
     void existsByIdOrElseThrow(final long id);
+
+    Optional<Category> findByName(String name);
 }

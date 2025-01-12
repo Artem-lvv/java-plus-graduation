@@ -1,5 +1,6 @@
 package ru.yandex.practicum.service;
 
+import jakarta.validation.constraints.Positive;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.location.model.dto.LocationLatAndLonDto;
@@ -21,4 +22,5 @@ public interface LocationService {
 
     List<LocationDto> getAll(final String text, final int from, final int size);
 
+    LocationDto getByCoordinates(double lat, double lon);
 }

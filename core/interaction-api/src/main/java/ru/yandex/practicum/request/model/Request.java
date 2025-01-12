@@ -23,7 +23,7 @@ public class Request {
     private LocalDateTime created;
 
     @JoinColumn(nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @ToString.Exclude
     private Event event;
 

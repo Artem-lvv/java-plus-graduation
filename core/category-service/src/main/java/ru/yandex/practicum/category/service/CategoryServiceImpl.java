@@ -10,11 +10,11 @@ import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.category.model.dto.CreateCategoryDto;
 import ru.yandex.practicum.category.storage.CategoryStorage;
-import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -34,6 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto update(final CreateCategoryDto createCategoryDto, final long id) {
         Category category = categoryStorage.getByIdOrElseThrow(id);
+        Optional<Category> byName = categoryStorage.findByName(createCategoryDto.name());
+
+        if (byName.isPresent() && !byName.get().equals(category)) {
+            throw new ConflictException(String.format("Category with name '%s' already exists",
+                    createCategoryDto.name()));
+        }
+
         category.setName(createCategoryDto.name());
         log.info("Update category - {}", category);
 
@@ -42,10 +49,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(final long id) {
-        List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter
-                .builder()
-                .categories(List.of(id))
-                .build());
+//        List<EventDto> eventDtos = adminEventClient.getAll(AdminParameter
+//                .builder()
+//                .categories(List.of(id))
+//                .build());
+        List<EventDto> eventDtos = adminEventClient.getAll(null,
+                null,
+                List.of(id),
+                null,
+                null,
+                null,
+                0,
+                1);
 
         if (!eventDtos.isEmpty()) {
             throw new ConflictException("Category with id " + id + " exists in Event");

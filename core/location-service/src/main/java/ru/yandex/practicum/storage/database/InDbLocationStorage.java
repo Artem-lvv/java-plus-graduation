@@ -68,4 +68,9 @@ public class InDbLocationStorage implements LocationStorage {
         log.info("Getting {} text - {} from - {} size - {}", SIMPLE_NAME, text, from, size);
         return locations;
     }
+
+    @Override
+    public Optional<Location> getByCoordinates(double lat, double lon) {
+        return locationRepository.findByLatAndLon(lat, lon);
+    }
 }

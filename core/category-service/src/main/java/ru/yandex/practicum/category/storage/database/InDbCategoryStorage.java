@@ -60,4 +60,9 @@ public class InDbCategoryStorage implements CategoryStorage {
             throw new NotFoundException(SIMPLE_NAME, id);
         }
     }
+
+    @Override
+    public Optional<Category> findByName(String name) {
+        return categoryRepository.findByName(name);
+    }
 }

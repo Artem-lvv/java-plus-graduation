@@ -11,7 +11,8 @@ import ru.yandex.practicum.stats.api.StatsServiceApiClient;
 @EnableFeignClients(clients = {AdminUserClient.class,
         PublicCategoryClient.class,
         PrivateUserRequestClient.class,
-        StatsServiceApiClient.class})
+        StatsServiceApiClient.class,
+        AdminLocationClient.class,})
 public class EventServiceApp {
     public static void main(String[] args) {
         SpringApplication.run(EventServiceApp.class);

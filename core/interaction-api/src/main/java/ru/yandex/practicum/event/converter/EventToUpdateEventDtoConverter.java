@@ -29,13 +29,16 @@ public class EventToUpdateEventDtoConverter implements Converter<Event, UpdateEv
                 source.getParticipantLimit(),
                 source.isRequestModeration(),
 //                StateAction.valueOf(source.getState().name()),
-                switch (source.getState()) {
-                    case PENDING -> null;
-                    case PUBLISHED -> StateAction.PUBLISH_EVENT;
-                    case CANCELED -> StateAction.CANCEL_REVIEW;
-                    case CONFIRMED -> null;
-                    case REJECTED -> StateAction.REJECT_EVENT;
-                },
+//                switch (source.getState()) {
+//                    case PENDING -> null;
+//                    case PUBLISHED -> StateAction.PUBLISH_EVENT;
+//                    case CANCELED -> StateAction.CANCEL_REVIEW;
+//                    case CONFIRMED -> null;
+//                    case REJECTED -> StateAction.REJECT_EVENT;
+//                }
+                null,
+
                 source.getTitle());
+
     }
 }

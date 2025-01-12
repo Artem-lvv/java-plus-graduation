@@ -20,4 +20,6 @@ public interface LocationStorage {
     void deleteById(final long id);
 
     List<Location> findAllByNameContainingIgnoreCase(final String text, final int from, final int size);
+
+    Optional<Location> getByCoordinates(final double lat, final double lon);
 }
