@@ -19,6 +19,7 @@ import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
+//import ru.yandex.practicum.event.model.QEvent;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;

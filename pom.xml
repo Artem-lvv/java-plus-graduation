@@ -14,12 +14,8 @@
 
 	<modules>
 		<module>stats</module>
-<!--		<module>stats/stats-client</module>-->
-<!--		<module>stats/stats-dto</module>-->
-<!--		<module>stats/stats-server</module>-->
         <module>infra</module>
 		<module>core</module>
-<!--        <module>core/user-service</module>-->
     </modules>
 
 	<groupId>ru.practicum</groupId>
