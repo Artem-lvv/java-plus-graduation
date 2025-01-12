@@ -93,6 +93,8 @@ services:
     depends_on:
       pg-category-db:
         condition: service_healthy
+      config-server:
+        condition: service_healthy
       event-service:
         condition: service_healthy
       discovery-server:
