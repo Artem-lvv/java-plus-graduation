@@ -84,9 +84,7 @@ public class LocationServiceImpl implements LocationService {
     public LocationDto getByCoordinates(double lat, double lon) {
         Optional<Location> byCoordinates = locationStorage.getByCoordinates(lat, lon);
 
-        if (byCoordinates.isPresent()) {
-            return cs.convert(byCoordinates.get(), LocationDto.class);
-        } else {}
-        return null;
+        return byCoordinates.map(location -> cs.convert(location, LocationDto.class))
+                .orElse(null);
     }
 }

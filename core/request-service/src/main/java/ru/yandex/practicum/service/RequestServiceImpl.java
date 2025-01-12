@@ -53,8 +53,8 @@ public class RequestServiceImpl implements RequestService {
                         List.of(eventId),
                         null,
                         null,
-                        0
-                        ,1)
+                        0,
+                        1)
                 .stream()
                 .findFirst().orElseThrow(() -> new NotFoundException(Event.class.getSimpleName(), eventId));
 
