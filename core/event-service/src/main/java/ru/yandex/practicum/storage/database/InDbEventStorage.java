@@ -43,8 +43,8 @@ public class InDbEventStorage implements EventStorage {
     }
 
     @Override
-    public List<Event> findAllByInitiatorId(final long userId, final PageRequest pageRequest) {
-        final List<Event> events = eventRepository.findByInitiatorId(userId, pageRequest);
+    public List<Event> findAllByInitiator(final long userId, final PageRequest pageRequest) {
+        final List<Event> events = eventRepository.findByInitiator(userId, pageRequest);
         log.info("Getting all by initiator {} : {}", SIMPLE_NAME, events);
         return events;
     }
@@ -78,8 +78,8 @@ public class InDbEventStorage implements EventStorage {
     }
 
     @Override
-    public List<Event> findByCategoryId(long id) {
-        final List<Event> events = eventRepository.findByCategoryId(id);
+    public List<Event> findByCategory(long id) {
+        final List<Event> events = eventRepository.findByCategory(id);
         log.info("Getting all {} : by category id {}", SIMPLE_NAME, id);
         return events;
     }

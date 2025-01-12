@@ -18,7 +18,7 @@ public interface EventStorage {
 
     Event getByIdOrElseThrow(final long id);
 
-    List<Event> findAllByInitiatorId(final long userId, final PageRequest pageRequest);
+    List<Event> findAllByInitiator(final long userId, final PageRequest pageRequest);
 
     List<Event> findAllByLocationAndRadius(final double lat, final double lon, final double radius);
 
@@ -30,7 +30,7 @@ public interface EventStorage {
 
     List<Event> findAllById(Set<Long> events);
 
-    List<Event> findByCategoryId(final long id);
+    List<Event> findByCategory(final long id);
 
     void saveAll(final List<Event> lists);
 }

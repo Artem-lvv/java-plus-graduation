@@ -1,11 +1,20 @@
 package ru.yandex.practicum.event.model;
 
-import ru.yandex.practicum.category.model.Category;
-import jakarta.persistence.*;
-import lombok.*;
-import ru.yandex.practicum.location.model.Location;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import ru.yandex.practicum.state.State;
-import ru.yandex.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -24,8 +33,7 @@ public class Event {
     @Column(nullable = false, length = 2000)
     private String annotation;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(nullable = false)
+    @Column(name = "category_id", nullable = false)
     private long category;
 
     @Column(nullable = false)
@@ -40,13 +48,11 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime eventDate;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(nullable = false)
+    @Column(name = "initiator_id", nullable = false)
     @ToString.Exclude
     private long initiator;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(nullable = false)
+    @Column(name = "location_id", nullable = false)
     @ToString.Exclude
     private long location;
 

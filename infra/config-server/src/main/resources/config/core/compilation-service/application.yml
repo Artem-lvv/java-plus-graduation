@@ -6,12 +6,14 @@ spring:
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
 
+    initialization-mode: always # Указываем, что должны использоваться файлы schema.sql и data.sql
+
   sql:
     init:
       mode: always
   jpa:
     hibernate:
-      ddl-auto: update  # Автоматическое создание или обновление таблиц
+      ddl-auto: none  # Автоматическое создание или обновление таблиц
     show-sql: true  # Показывать SQL-запросы в логах
     properties:
       hibernate:

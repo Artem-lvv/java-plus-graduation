@@ -13,9 +13,9 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event>,
         JpaSpecificationExecutor<Event> {
 
-    List<Event> findByInitiatorId(final long userId, final Pageable pageable);
+    List<Event> findByInitiator(final long userId, final Pageable pageable);
 
-    List<Event> findByCategoryId(final long catId);
+    List<Event> findByCategory(final long catId);
 
     @Query(value = "SELECT e.* FROM events e JOIN locations l "
             + "ON e.location_id = l.id "

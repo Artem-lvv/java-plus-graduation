@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.service.EventService;
 
@@ -35,8 +36,8 @@ public class PrivateEventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EventDto create(@RequestBody @Valid final CreateEventDto createEventDto,
-                           @PathVariable @Positive final long userId) {
+    public EventDtoWithObjects create(@RequestBody @Valid final CreateEventDto createEventDto,
+                                      @PathVariable @Positive final long userId) {
         log.info("Request to create an {} - {}", SIMPLE_NAME, createEventDto);
         return eventService.create(createEventDto, userId);
     }
@@ -59,7 +60,7 @@ public class PrivateEventController {
 
 
     @PatchMapping("/{eventId}")
-    public EventDto update(@PathVariable @Positive final long userId,
+    public EventDtoWithObjects update(@PathVariable @Positive final long userId,
                            @PathVariable @Positive final long eventId,
                            @RequestBody @Valid UpdateEventDto updateEventDto) {
         log.info("Request to update {} {} eventId = {}", SIMPLE_NAME, updateEventDto, eventId);

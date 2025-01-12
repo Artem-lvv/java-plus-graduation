@@ -12,13 +12,13 @@ import ru.yandex.practicum.compilation.model.Compilation;
 import ru.yandex.practicum.compilation.model.dto.CompilationDto;
 import ru.yandex.practicum.compilation.model.dto.CreateCompilationDto;
 import ru.yandex.practicum.compilation.model.dto.UpdateCompilationDto;
-import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.storage.CompilationStorage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -33,8 +33,10 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto create(final CreateCompilationDto createCompilationDto) {
         Compilation compilation = cs.convert(createCompilationDto, Compilation.class);
 
+        List<EventDto> eventDtos = new ArrayList<>();
+
         if (!ObjectUtils.isEmpty(createCompilationDto.events())) {
-            List<EventDto> eventDtos = adminEventClient.getAll(null,
+            eventDtos = adminEventClient.getAll(null,
                     null,
                     null,
                     createCompilationDto.events().stream().toList(),
@@ -43,19 +45,21 @@ public class CompilationServiceImpl implements CompilationService {
                     0,
                     10);
 
-            final List<Event> events = eventDtos
-                    .stream()
-                    .map(eventDto -> cs.convert(eventDto, Event.class))
-                    .toList();
-
-            if (events.size() != createCompilationDto.events().size()) {
+            if (eventDtos.size() != createCompilationDto.events().size()) {
                 throw new NotFoundException("the number of events found does not correspond to the requirements");
             }
 
-            compilation.setEvents(events);
+            compilation.setEvents(createCompilationDto.events().stream().toList());
         }
 
-        return cs.convert(compilationStorage.save(compilation), CompilationDto.class);
+        compilationStorage.save(compilation);
+
+        return CompilationDto.builder()
+                .id(compilation.getId())
+                .pinned(compilation.isPinned())
+                .title(compilation.getTitle())
+                .events(eventDtos)
+                .build();
     }
 
     @Override
@@ -70,9 +74,10 @@ public class CompilationServiceImpl implements CompilationService {
             compilationInStorage.setTitle(compilationInStorage.getTitle());
         }
 
-        if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
+        List<EventDto> eventDtos = new ArrayList<>();
 
-            List<EventDto> eventDtos = adminEventClient.getAll(null,
+        if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
+            eventDtos = adminEventClient.getAll(null,
                     null,
                     null,
                     updateCompilationDto.events().stream().toList(),
@@ -81,18 +86,18 @@ public class CompilationServiceImpl implements CompilationService {
                     0,
                     Integer.MAX_VALUE);
 
-            final List<Event> events = eventDtos
-                    .stream()
-                    .map(eventDto -> cs.convert(eventDto, Event.class))
-                    .toList();
-
-            compilationInStorage.setEvents(new ArrayList<>(events));
+            compilationInStorage.setEvents(new ArrayList<>(updateCompilationDto.events()));
         }
 
         log.info("Update compilation - {}", compilationInStorage);
+        compilationStorage.save(compilationInStorage);
 
-        Compilation compilation = compilationStorage.save(compilationInStorage);
-        return cs.convert(compilation, CompilationDto.class);
+        return CompilationDto.builder()
+                .id(compilationInStorage.getId())
+                .pinned(compilationInStorage.isPinned())
+                .title(compilationInStorage.getTitle())
+                .events(Objects.isNull(eventDtos) ? new ArrayList<>() : eventDtos)
+                .build();
     }
 
     @Override
@@ -108,13 +113,55 @@ public class CompilationServiceImpl implements CompilationService {
         List<Compilation> compilations = ObjectUtils.isEmpty(pinned) ? compilationStorage.findAll(page)
                 : compilationStorage.findAllByPinnedIs(pinned, page);
 
-        return compilations.stream()
-                .map(compilation -> cs.convert(compilation, CompilationDto.class))
-                .toList();
+        List<CompilationDto> compilationDtos = new ArrayList<>();
+
+        for (Compilation compilation : compilations) {
+            List<EventDto> eventDtos = new ArrayList<>();
+
+            if (!compilation.getEvents().isEmpty()) {
+                eventDtos = adminEventClient.getAll(null,
+                        null,
+                        null,
+                        compilation.getEvents(),
+                        null,
+                        null,
+                        0,
+                        Integer.MAX_VALUE);
+            }
+
+            compilationDtos.add(CompilationDto.builder()
+                            .id(compilation.getId())
+                            .title(compilation.getTitle())
+                            .pinned(compilation.isPinned())
+                            .events(Objects.isNull(eventDtos) ? new ArrayList<>() : eventDtos)
+                    .build());
+        }
+
+        return compilationDtos;
     }
 
     @Override
     public CompilationDto getById(final long compId) {
-        return cs.convert(compilationStorage.getByIdOrElseThrow(compId), CompilationDto.class);
+        Compilation compilation = compilationStorage.getByIdOrElseThrow(compId);
+
+        List<EventDto> eventDtos = new ArrayList<>();
+
+        if (!ObjectUtils.isEmpty(compilation.getEvents())) {
+            eventDtos = adminEventClient.getAll(null,
+                    null,
+                    null,
+                    compilation.getEvents(),
+                    null,
+                    null,
+                    0,
+                    Integer.MAX_VALUE);
+        }
+
+        return CompilationDto.builder()
+                .id(compilation.getId())
+                .title(compilation.getTitle())
+                .pinned(compilation.isPinned())
+                .events(eventDtos)
+                .build();
     }
 }

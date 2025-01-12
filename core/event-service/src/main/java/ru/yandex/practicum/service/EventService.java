@@ -6,6 +6,7 @@ import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.PublicParameter;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public interface EventService {
 
     EventDto updateByAdmin(final long eventId, final UpdateEventDto updateEventDto);
 
-    EventDto create(final CreateEventDto createEventDto, final long userId);
+    EventDtoWithObjects create(final CreateEventDto createEventDto, final long userId);
 
     List<EventDto> getAllByUserId(final long userId, final int from, final int size);
 
@@ -27,5 +28,5 @@ public interface EventService {
 
     List<EventDto> getAllByLocation(final double lat, final double lon, final double radius);
 
-    EventDto updateByUser(final long userId, final long eventId, final UpdateEventDto updateEventDto);
+    EventDtoWithObjects updateByUser(final long userId, final long eventId, final UpdateEventDto updateEventDto);
 }

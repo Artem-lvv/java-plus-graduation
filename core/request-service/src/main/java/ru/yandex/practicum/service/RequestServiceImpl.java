@@ -1,9 +1,13 @@
 package ru.yandex.practicum.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import ru.yandex.practicum.AdminEventClient;
 import ru.yandex.practicum.AdminUserClient;
-import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
@@ -15,16 +19,12 @@ import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
 import ru.yandex.practicum.request.model.dto.UpdateRequestByIdsDto;
 import ru.yandex.practicum.state.State;
 import ru.yandex.practicum.storage.RequestStorage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.stereotype.Service;
 import ru.yandex.practicum.user.model.User;
 import ru.yandex.practicum.user.model.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -74,8 +74,8 @@ public class RequestServiceImpl implements RequestService {
 
         Request request = Request.builder()
                 .created(LocalDateTime.now())
-                .event(event)
-                .requester(user)
+                .event(event.getId())
+                .requester(user.getId())
                 .status(event.getParticipantLimit() == 0 || !event.isRequestModeration() ? State.CONFIRMED
                         : State.PENDING)
                 .build();
@@ -105,7 +105,19 @@ public class RequestServiceImpl implements RequestService {
         Request request = requestStorage.getByIdOrElseThrow(requestId);
 
         if (request.getStatus() == State.CONFIRMED) {
-            Event event = request.getEvent();
+            EventDto eventDto = adminEventClient.getAll(null,
+                    null,
+                    null,
+                    List.of(request.getEvent()),
+                    null,
+                    null,
+                    null,
+                    1)
+                    .stream()
+                    .findFirst().get();
+
+            Event event = cs.convert(eventDto, Event.class);
+
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);
             adminEventClient.update(cs.convert(event, UpdateEventDto.class), event.getId());
         }
@@ -149,7 +161,18 @@ public class RequestServiceImpl implements RequestService {
                 );
             }
 
-            Event event = request.getEvent();
+            EventDto eventDto = adminEventClient.getAll(null,
+                    null,
+                    null,
+                    List.of(request.getEvent()),
+                    null,
+                    null,
+                    null,
+                    1)
+                    .stream()
+                    .findFirst().get();
+
+            Event event = cs.convert(eventDto, Event.class);
 
             if (countRequest >= event.getParticipantLimit()) {
                 throw new ConflictException("The limit on applications for this event has been reached");
@@ -191,7 +214,20 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getAllRequestsByEventInitiatorIdAndEventId(long userId, long eventId) {
-        return requestStorage.findAllByEvent_Initiator_IdAndEvent_Id(userId, eventId)
+        List<EventDto> eventDtos = adminEventClient.getAll(List.of(userId),
+                null,
+                null,
+                List.of(eventId),
+                null,
+                null,
+                null,
+                Integer.MAX_VALUE);
+
+        if (ObjectUtils.isEmpty(eventDtos)) {
+            return Collections.emptyList();
+        }
+
+        return requestStorage.findAllByEventId(eventId)
                 .stream()
                 .map(request -> cs.convert(request, RequestDto.class))
                 .toList();

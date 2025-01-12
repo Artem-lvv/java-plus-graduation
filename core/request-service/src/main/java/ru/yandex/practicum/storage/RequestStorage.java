@@ -28,6 +28,4 @@ public interface RequestStorage {
     List<Request> findAllByEventId(final long eventId);
 
     void ifExistsByRequesterIdAndEventIdThenThrow(final long userId, final long eventId);
-
-    List<Request> findAllByEvent_Initiator_IdAndEvent_Id(long eventInitiatorId, long eventId);
 }

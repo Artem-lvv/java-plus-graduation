@@ -11,8 +11,8 @@ public class RequsetToRequestDtoConverter implements Converter<Request, RequestD
     public RequestDto convert(final Request source) {
         return RequestDto.builder()
                 .id(source.getId())
-                .requester(source.getRequester().getId())
-                .event(source.getEvent().getId())
+                .requester(source.getRequester())
+                .event(source.getEvent())
                 .status(source.getStatus())
                 .created(source.getCreated())
                 .build();

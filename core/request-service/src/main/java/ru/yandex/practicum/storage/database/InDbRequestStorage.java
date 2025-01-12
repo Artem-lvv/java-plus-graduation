@@ -25,7 +25,7 @@ public class InDbRequestStorage implements RequestStorage {
 
     @Override
     public int countByEventIdAndStatus(final long id, final State state) {
-        final int count = requestRepository.countByEventIdAndStatus(id, state);
+        final int count = requestRepository.countByEventAndStatus(id, state);
         log.info("countByEventIdAndStatus count: {}", count);
         return count;
     }
@@ -40,7 +40,7 @@ public class InDbRequestStorage implements RequestStorage {
 
     @Override
     public List<Request> findAllByRequesterId(final long userId) {
-        List<Request> requests = requestRepository.findAllByRequesterId(userId);
+        List<Request> requests = requestRepository.findAllByRequester(userId);
         log.info("Getting all {} : {}", SIMPLE_NAME, requests);
         return requests;
     }
@@ -59,14 +59,14 @@ public class InDbRequestStorage implements RequestStorage {
 
     @Override
     public List<Request> findAllByRequesterIdAndEventId(final long userId, final long eventId) {
-        final List<Request> requests = requestRepository.findByRequesterIdAndEventId(userId, eventId);
+        final List<Request> requests = requestRepository.findByRequesterAndEvent(userId, eventId);
         log.info("Getting all by requester id and event id {} : {}", SIMPLE_NAME, requests);
         return requests;
     }
 
     @Override
     public List<Request> findAllByIdInAndEventId(final Set<Long> ids, final long eventId) {
-        final List<Request> requests = requestRepository.findByIdInAndEventId(ids, eventId);
+        final List<Request> requests = requestRepository.findByIdInAndEvent(ids, eventId);
         log.info("Getting all by Ids {} : {}", SIMPLE_NAME, requests);
         return requests;
     }
@@ -80,20 +80,15 @@ public class InDbRequestStorage implements RequestStorage {
 
     @Override
     public List<Request> findAllByEventId(long eventId) {
-        final List<Request> requests = requestRepository.findByEventId(eventId);
+        final List<Request> requests = requestRepository.findByEvent(eventId);
         log.info("Getting all by event id {} : {}", SIMPLE_NAME, requests);
         return requests;
     }
 
     @Override
     public void ifExistsByRequesterIdAndEventIdThenThrow(long userId, long eventId) {
-        if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
+        if (requestRepository.existsByRequesterAndEvent(userId, eventId)) {
             throw new ConflictException(SIMPLE_NAME.formatted(" cannot re-apply for the same event : %d", eventId));
         }
-    }
-
-    @Override
-    public List<Request> findAllByEvent_Initiator_IdAndEvent_Id(long eventInitiatorId, long eventId) {
-        return requestRepository.findAllByEvent_Initiator_IdAndEvent_Id(eventInitiatorId, eventId);
     }
 }

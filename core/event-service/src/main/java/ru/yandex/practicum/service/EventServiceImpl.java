@@ -14,18 +14,16 @@ import ru.yandex.practicum.AdminLocationClient;
 import ru.yandex.practicum.AdminUserClient;
 import ru.yandex.practicum.PrivateUserRequestClient;
 import ru.yandex.practicum.PublicCategoryClient;
-import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
-//import ru.yandex.practicum.event.model.QEvent;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
-import ru.yandex.practicum.location.model.Location;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.state.State;
@@ -35,6 +33,7 @@ import ru.yandex.practicum.stats.model.ViewStats;
 import ru.yandex.practicum.storage.EventStorage;
 import ru.yandex.practicum.user.model.User;
 import ru.yandex.practicum.user.model.dto.UserDto;
+import ru.yandex.practicum.user.model.dto.UserWithoutEmailDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -136,7 +135,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDto create(final CreateEventDto createEventDto, final long userId) {
+    public EventDtoWithObjects create(final CreateEventDto createEventDto, final long userId) {
         UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
                 .stream()
                 .findFirst()
@@ -145,21 +144,46 @@ public class EventServiceImpl implements EventService {
         User user = cs.convert(userDto, User.class);
 
         CategoryDto categoryDto = publicCategoryClient.getById(createEventDto.category());
-        final Category category = cs.convert(categoryDto, Category.class);
 
         LocationDto locationDto = getOrCreateLocationDtoByCoordinates(createEventDto.location().lat(),
                 createEventDto.location().lon());
-        Location location = cs.convert(locationDto, Location.class);
 
         Event event = cs.convert(createEventDto, Event.class);
 
         event.setInitiator(user.getId());
-        event.setCategory(category.getId());
-        event.setLocation(location.getId());
+        event.setCategory(categoryDto.id());
+        event.setLocation(locationDto.id());
         event.setCreatedOn(LocalDateTime.now());
         event.setState(State.PENDING);
 
-        return cs.convert(eventStorage.save(event), EventDto.class);
+        eventStorage.save(event);
+
+        return createDtoWithObjects(event, categoryDto, user, locationDto);
+    }
+
+    private EventDtoWithObjects createDtoWithObjects(Event event, CategoryDto categoryDto,
+                                                     User user, LocationDto locationDto) {
+        return EventDtoWithObjects.builder()
+                .id(event.getId())
+                .annotation(event.getAnnotation())
+                .category(categoryDto)
+                .confirmedRequests(event.getConfirmedRequests())
+                .createdOn(event.getCreatedOn())
+                .description(event.getDescription())
+                .eventDate(event.getEventDate())
+                .initiator(UserWithoutEmailDto.builder()
+                        .id(user.getId())
+                        .name(user.getName())
+                        .build())
+                .location(locationDto)
+                .paid(event.isPaid())
+                .participantLimit(event.getParticipantLimit())
+                .publishedOn(event.getPublishedOn())
+                .requestModeration(event.isRequestModeration())
+                .state(event.getState())
+                .title(event.getTitle())
+                .views(event.getViews())
+                .build();
     }
 
     private LocationDto getOrCreateLocationDtoByCoordinates(double lat, double lon) {
@@ -183,7 +207,7 @@ public class EventServiceImpl implements EventService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
 
-        return eventStorage.findAllByInitiatorId(userId, PageRequest.of(from, size)).stream()
+        return eventStorage.findAllByInitiator(userId, PageRequest.of(from, size)).stream()
                 .map(event -> cs.convert(event, EventDto.class))
                 .toList();
     }
@@ -267,7 +291,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDto updateByUser(final long userId, final long eventId, final UpdateEventDto updateEventDto) {
+    public EventDtoWithObjects updateByUser(final long userId, final long eventId, final UpdateEventDto updateEventDto) {
         Event eventInStorage = eventStorage.getByIdOrElseThrow(eventId);
 
         checkEventIsPublished(eventInStorage.getState());
@@ -284,7 +308,19 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        return cs.convert(eventStorage.save(update(eventInStorage, updateEventDto)), EventDto.class);
+        eventStorage.save(update(eventInStorage, updateEventDto));
+
+        UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+
+        User user = cs.convert(userDto, User.class);
+
+        CategoryDto categoryDto = publicCategoryClient.getById(eventInStorage.getCategory());
+        LocationDto locationDto = adminLocationClient.getById(eventInStorage.getLocation());
+
+        return createDtoWithObjects(eventInStorage, categoryDto, user, locationDto);
     }
 
     private void addStats(final HttpServletRequest request) {
@@ -329,7 +365,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> checkCategories(final List<Long> categories) {
         return ObjectUtils.isEmpty(categories) ? null
-                : ((root, query, criteriaBuilder) -> root.get("category").get("id").in(categories));
+                : ((root, query, criteriaBuilder) -> root.get("category").in(categories));
     }
 
     private Specification<Event> checkEvents(final List<Long> eventsId) {
@@ -339,7 +375,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> checkByUserIds(final List<Long> userIds) {
         return ObjectUtils.isEmpty(userIds) ? null
-                : ((root, query, criteriaBuilder) -> root.get("initiator").get("id").in(userIds));
+                : ((root, query, criteriaBuilder) -> root.get("initiator").in(userIds));
     }
 
     private Specification<Event> checkStates(final List<State> states) {
