@@ -13,6 +13,10 @@ spring:
         useRandomPolicy: true
         max-interval: 6000
 
+    loadbalancer:
+      retry:
+        enabled: true
+
 eureka:
   client:
     fetch-registry: true
