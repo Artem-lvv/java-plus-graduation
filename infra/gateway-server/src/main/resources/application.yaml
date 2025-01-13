@@ -12,6 +12,10 @@ spring:
         enabled: true
         serviceId: config-server
 
+    loadbalancer:
+      retry:
+        enabled: true
+
 eureka:
   client:
     serviceUrl:
