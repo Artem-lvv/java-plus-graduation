@@ -16,8 +16,10 @@ spring:
       retry:
         enabled: true
         retry-on-all-operations: true
-        max-retries-on-next-service-instance: 40
-        max-retries-on-same-service-instance: 40
+      service-discovery:
+        timeout: 1s
+    #        max-retries-on-next-service-instance: 40
+#        max-retries-on-same-service-instance: 40
 
     gateway:
       httpclient:
@@ -28,8 +30,10 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
     fetch-registry: true
     registry-fetch-interval-seconds: 2
+
   instance:
     preferIpAddress: true
     hostname: localhost

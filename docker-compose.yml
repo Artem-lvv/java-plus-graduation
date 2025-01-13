@@ -39,6 +39,21 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
+
+      event-service:
+        condition: service_healthy
+      stats-server:
+        condition: service_healthy
+      category-service:
+        condition: service_healthy
+      compilation-service:
+        condition: service_healthy
+      location-service:
+        condition: service_healthy
+      request-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     networks:
       - ewm-net
     environment:
@@ -108,7 +123,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-category-db:
@@ -151,7 +166,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-compilation-db:
@@ -200,7 +215,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8083/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-event-db:
@@ -243,7 +258,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8084/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-location-db:
@@ -286,7 +301,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8085/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-request-db:
@@ -327,7 +342,7 @@ services:
     healthcheck:
       test: "curl --fail --silent localhost:8086/actuator/health | grep UP || exit 1"
       timeout: 5s
-      interval: 25s
+      interval: 15s
       retries: 10
 
   pg-user-db:
