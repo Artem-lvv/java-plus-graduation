@@ -22,4 +22,6 @@ public interface LocationService {
     List<LocationDto> getAll(final String text, final int from, final int size);
 
     LocationDto getByCoordinates(double lat, double lon);
+
+    List<LocationDto> getAllByCoordinates(Double lat, Double lon, double radius);
 }

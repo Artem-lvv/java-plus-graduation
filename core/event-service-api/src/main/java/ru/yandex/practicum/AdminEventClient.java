@@ -28,5 +28,5 @@ public interface AdminEventClient {
 
     @PatchMapping("/admin/events/{eventId}")
     EventDto update(@RequestBody UpdateEventDto updateEventDto,
-                    @PathVariable("eventId") long eventId);
+                               @PathVariable("eventId") long eventId);
 }

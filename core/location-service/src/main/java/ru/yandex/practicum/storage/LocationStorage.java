@@ -22,4 +22,6 @@ public interface LocationStorage {
     List<Location> findAllByNameContainingIgnoreCase(final String text, final int from, final int size);
 
     Optional<Location> getByCoordinates(final double lat, final double lon);
+
+    List<Location> getByLatAndLonAndRadius(final double lat, final double lon, final double radius);
 }

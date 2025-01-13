@@ -8,6 +8,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 import ru.yandex.practicum.event.model.Event;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event>,
@@ -30,4 +31,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
             + "AND (distance(l.lat, l.lon, :lat, :lon) < l.radius "
             + "OR (l.lat = :lat and l.lon = :lon))", nativeQuery = true)
     List<Event> findByLocationLatAndLocationLon(@Param("lat") final double lat, @Param("lon") final double lon);
+
+    List<Event> findAllByLocationIn(Collection<Long> locations);
 }

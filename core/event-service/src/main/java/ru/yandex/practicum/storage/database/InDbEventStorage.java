@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -103,5 +104,11 @@ public class InDbEventStorage implements EventStorage {
     public void saveAll(final List<Event> lists) {
         log.info("Save All {} - {}", SIMPLE_NAME, lists);
         eventRepository.saveAll(lists);
+    }
+
+    @Override
+    public List<Event> findAllByLocationIn(Collection<Long> locations) {
+        log.info("Find all {} by locations - {}", SIMPLE_NAME, locations);
+        return eventRepository.findAllByLocationIn(locations);
     }
 }

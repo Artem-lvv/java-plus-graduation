@@ -1,5 +1,6 @@
 package ru.yandex.practicum;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -7,6 +8,9 @@ import jakarta.validation.constraints.Positive;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.location.model.dto.UpdateLocationDto;
+import ru.yandex.practicum.validation.ConstraintNotZero;
+
+import java.util.List;
 
 @FeignClient(name = "${admin.location.service.name:LOCATION-SERVICE}", url = "${admin.locations.service.url}")
 public interface AdminLocationClient {
@@ -27,4 +31,10 @@ public interface AdminLocationClient {
     @GetMapping("/admin/locations/lat/{lat}/lon/{lon}")
     LocationDto getByCoordinates(@PathVariable @Positive double lat,
                                   @PathVariable double lon);
+
+    @GetMapping("/admin/locations")
+    public List<LocationDto> getAllByCoordinates(@RequestParam @ConstraintNotZero final Double lat,
+                                                 @RequestParam @ConstraintNotZero final Double lon,
+                                                 @RequestParam(required = false, defaultValue = "0")
+                                                 @PositiveOrZero final double radius);
 }

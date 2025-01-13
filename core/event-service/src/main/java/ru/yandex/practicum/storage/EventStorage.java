@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import ru.yandex.practicum.event.model.Event;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,4 +34,6 @@ public interface EventStorage {
     List<Event> findByCategory(final long id);
 
     void saveAll(final List<Event> lists);
+
+    List<Event> findAllByLocationIn(Collection<Long> locations);
 }

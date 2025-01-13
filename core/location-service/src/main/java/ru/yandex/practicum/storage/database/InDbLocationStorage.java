@@ -73,4 +73,9 @@ public class InDbLocationStorage implements LocationStorage {
     public Optional<Location> getByCoordinates(double lat, double lon) {
         return locationRepository.findByLatAndLon(lat, lon);
     }
+
+    @Override
+    public List<Location> getByLatAndLonAndRadius(double lat, double lon, double radius) {
+        return locationRepository.findByLatAndLonAndRadius(lat, lon, radius);
+    }
 }

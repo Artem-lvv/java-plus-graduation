@@ -13,6 +13,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,5 +87,24 @@ public class LocationServiceImpl implements LocationService {
 
         return byCoordinates.map(location -> cs.convert(location, LocationDto.class))
                 .orElse(null);
+    }
+
+    @Override
+    public List<LocationDto> getAllByCoordinates(Double lat, Double lon, double radius) {
+        List<Location> locations = new ArrayList<>();
+
+        if (radius > 0) {
+            locations = locationStorage.getByLatAndLonAndRadius(lat, lon, radius);
+        } else {
+            Optional<Location> byLatAndLon = locationStorage.findByLatAndLon(lat, lon);
+            if (byLatAndLon.isPresent()) {
+                locations = List.of(byLatAndLon.get());
+            }
+        }
+
+        return locations
+                .stream()
+                .map(location -> cs.convert(location, LocationDto.class))
+                .toList();
     }
 }
