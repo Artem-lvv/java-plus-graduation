@@ -16,6 +16,9 @@ spring:
     loadbalancer:
       retry:
         enabled: true
+        retry-on-all-operations: true
+        max-retries-on-next-service-instance: 40
+        max-retries-on-same-service-instance: 40
 
 eureka:
   client:
