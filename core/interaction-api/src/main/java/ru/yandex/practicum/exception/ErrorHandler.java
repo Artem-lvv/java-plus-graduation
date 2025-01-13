@@ -20,20 +20,20 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class ErrorHandler {
 
-//    @ExceptionHandler
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    public ErrorResponse handleServerException(final Throwable e) {
-//        final ErrorResponse errorResponse = ErrorResponse.builder()
-//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .reason(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-//                .message(e.getMessage())
-//                .timestamp(LocalDateTime.now())
-//                .build();
-//
-//        log.error(errorResponse.toString(), e);
-//
-//        return errorResponse;
-//    }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleServerException(final Throwable e) {
+        final ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .reason(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        log.error(errorResponse.toString(), e);
+
+        return errorResponse;
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -95,8 +95,6 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
-      event-service:
-        condition: service_healthy
       discovery-server:
         condition: service_healthy
     networks:
@@ -149,9 +147,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - SERVER_PORT=8081
+      - SERVER_PORT=8082
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
@@ -181,10 +179,16 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
-      stats-server:
-        condition: service_healthy
+#      stats-server:
+#        condition: service_healthy
       discovery-server:
         condition: service_healthy
+#      category-service:
+#        condition: service_healthy
+#      location-service:
+#        condition: service_healthy
+#      user-service:
+#        condition: service_healthy
     networks:
       - ewm-net
     environment:
@@ -192,9 +196,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - SERVER_PORT=8081
+      - SERVER_PORT=8083
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8083/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
@@ -235,9 +239,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - SERVER_PORT=8081
+      - SERVER_PORT=8084
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8084/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
@@ -278,9 +282,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - SERVER_PORT=8081
+      - SERVER_PORT=8085
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8085/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
@@ -319,9 +323,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - SERVER_PORT=8081
+      - SERVER_PORT=8086
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8086/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
