@@ -10,7 +10,7 @@ import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.model.dto.CategoryDto;
 import ru.yandex.practicum.category.model.dto.CreateCategoryDto;
 import ru.yandex.practicum.category.storage.CategoryStorage;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.exception.type.ConflictException;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(final long id) {
-        List<EventDto> eventDtos = adminEventClient.getAll(null,
+        List<EventDtoWithObjects> eventDtos = adminEventClient.getAll(null,
                 null,
                 List.of(id),
                 null,

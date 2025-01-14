@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.service.EventService;
 
@@ -29,14 +29,14 @@ public class AdminEventController {
     private final EventService eventService;
 
     @GetMapping
-    public List<EventDto> getAll(@Valid final AdminParameter adminParameter) {
+    public List<EventDtoWithObjects> getAll(@Valid final AdminParameter adminParameter) {
         log.info("Administrator's request to provide {} by parameters - {}", SIMPLE_NAME, adminParameter);
         return eventService.getAllByAdmin(adminParameter);
     }
 
     @PatchMapping("/{eventId}")
-    public EventDto update(@RequestBody @Valid final UpdateEventDto updateEventDto,
-                           @PathVariable @Positive final long eventId) {
+    public EventDtoWithObjects update(@RequestBody @Valid final UpdateEventDto updateEventDto,
+                                      @PathVariable @Positive final long eventId) {
         log.info("Request by the administrator to change an {} by id - {} - {}", SIMPLE_NAME, eventId, updateEventDto);
         return eventService.updateByAdmin(eventId, updateEventDto);
     }

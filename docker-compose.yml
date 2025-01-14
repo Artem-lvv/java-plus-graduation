@@ -194,16 +194,8 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
-#      stats-server:
-#        condition: service_healthy
       discovery-server:
         condition: service_healthy
-#      category-service:
-#        condition: service_healthy
-#      location-service:
-#        condition: service_healthy
-#      user-service:
-#        condition: service_healthy
     networks:
       - ewm-net
     environment:

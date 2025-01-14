@@ -67,4 +67,10 @@ public class AdminLocationController {
         log.info("Admin locations requested by {} - lat {} - lon {} - radius {}", SIMPLE_NAME, lat, lon, radius);
         return locationService.getAllByCoordinates(lat, lon, radius);
     }
+
+    @GetMapping("/ids")
+    public List<LocationDto> getAllByIds(@RequestParam List<Long> ids) {
+        log.info("Admin locations requested by {} - ids {} ", SIMPLE_NAME, ids);
+        return locationService.getAllByIds(ids);
+    }
 }

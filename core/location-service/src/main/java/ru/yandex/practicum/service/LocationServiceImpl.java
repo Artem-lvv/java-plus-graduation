@@ -107,4 +107,12 @@ public class LocationServiceImpl implements LocationService {
                 .map(location -> cs.convert(location, LocationDto.class))
                 .toList();
     }
+
+    @Override
+    public List<LocationDto> getAllByIds(List<Long> ids) {
+        return locationStorage.findByIds(ids)
+                .stream()
+                .map(location -> cs.convert(location, LocationDto.class))
+                .toList();
+    }
 }

@@ -24,4 +24,6 @@ public interface LocationStorage {
     Optional<Location> getByCoordinates(final double lat, final double lon);
 
     List<Location> getByLatAndLonAndRadius(final double lat, final double lon, final double radius);
+
+    List<Location> findByIds(List<Long> ids);
 }

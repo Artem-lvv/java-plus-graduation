@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 public interface AdminEventClient {
 
     @GetMapping("/admin/events")
-    List<EventDto> getAll(@RequestParam(value = "users", required = false) List<Long> users,
+    List<EventDtoWithObjects> getAll(@RequestParam(value = "users", required = false) List<Long> users,
                           @RequestParam(value = "states", required = false) List<String> states,
                           @RequestParam(value = "categories", required = false) List<Long> categories,
                           @RequestParam(value = "events", required = false) List<Long> events,
@@ -27,6 +27,6 @@ public interface AdminEventClient {
                           @RequestParam(value = "size", required = false, defaultValue = "10") Integer size);
 
     @PatchMapping("/admin/events/{eventId}")
-    EventDto update(@RequestBody UpdateEventDto updateEventDto,
+    EventDtoWithObjects update(@RequestBody UpdateEventDto updateEventDto,
                                @PathVariable("eventId") long eventId);
 }

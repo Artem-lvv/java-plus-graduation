@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.service.EventService;
 import ru.yandex.practicum.validation.ConstraintNotZero;
 
@@ -30,20 +30,20 @@ public class PublicEventController {
     private final EventService eventService;
 
     @GetMapping("/{id}")
-    public EventDto getById(@PathVariable @Positive final long id, final HttpServletRequest request) {
+    public EventDtoWithObjects getById(@PathVariable @Positive final long id, final HttpServletRequest request) {
         log.info("Public event {} by id - {}", SIMPLE_NAME, id);
         return eventService.getById(id, request);
     }
 
     @GetMapping
-    public List<EventDto> getAll(@Valid final PublicParameter publicParameter,
+    public List<EventDtoWithObjects> getAll(@Valid final PublicParameter publicParameter,
                                  final HttpServletRequest request) {
         log.info("Public {} request with parameters - {}", SIMPLE_NAME, publicParameter);
         return eventService.getAll(publicParameter, request);
     }
 
     @GetMapping("/locations")
-    public List<EventDto> getEventsByLatAndLon(@RequestParam @ConstraintNotZero final Double lat,
+    public List<EventDtoWithObjects> getEventsByLatAndLon(@RequestParam @ConstraintNotZero final Double lat,
                                                @RequestParam @ConstraintNotZero final Double lon,
                                                @RequestParam(required = false, defaultValue = "0")
                                                @PositiveOrZero final double radius) {

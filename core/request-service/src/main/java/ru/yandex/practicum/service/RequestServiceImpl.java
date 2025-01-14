@@ -9,7 +9,7 @@ import org.springframework.util.ObjectUtils;
 import ru.yandex.practicum.AdminEventClient;
 import ru.yandex.practicum.AdminUserClient;
 import ru.yandex.practicum.event.model.Event;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
@@ -47,7 +47,7 @@ public class RequestServiceImpl implements RequestService {
 
         User user = cs.convert(userDto, User.class);
 
-        EventDto eventDto = adminEventClient.getAll(null,
+        EventDtoWithObjects eventDto = adminEventClient.getAll(null,
                         null,
                         null,
                         List.of(eventId),
@@ -105,7 +105,7 @@ public class RequestServiceImpl implements RequestService {
         Request request = requestStorage.getByIdOrElseThrow(requestId);
 
         if (request.getStatus() == State.CONFIRMED) {
-            EventDto eventDto = adminEventClient.getAll(null,
+            EventDtoWithObjects eventDto = adminEventClient.getAll(null,
                     null,
                     null,
                     List.of(request.getEvent()),
@@ -161,7 +161,7 @@ public class RequestServiceImpl implements RequestService {
                 );
             }
 
-            EventDto eventDto = adminEventClient.getAll(null,
+            EventDtoWithObjects eventDto = adminEventClient.getAll(null,
                     null,
                     null,
                     List.of(request.getEvent()),
@@ -214,7 +214,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getAllRequestsByEventInitiatorIdAndEventId(long userId, long eventId) {
-        List<EventDto> eventDtos = adminEventClient.getAll(List.of(userId),
+        List<EventDtoWithObjects> eventDtos = adminEventClient.getAll(List.of(userId),
                 null,
                 null,
                 List.of(eventId),

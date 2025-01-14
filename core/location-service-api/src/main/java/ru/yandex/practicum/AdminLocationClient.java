@@ -33,8 +33,11 @@ public interface AdminLocationClient {
                                   @PathVariable double lon);
 
     @GetMapping("/admin/locations")
-    public List<LocationDto> getAllByCoordinates(@RequestParam @ConstraintNotZero final Double lat,
+    List<LocationDto> getAllByCoordinates(@RequestParam @ConstraintNotZero final Double lat,
                                                  @RequestParam @ConstraintNotZero final Double lon,
                                                  @RequestParam(required = false, defaultValue = "0")
                                                  @PositiveOrZero final double radius);
+
+    @GetMapping("/admin/locations/ids")
+    List<LocationDto> getAllByIds(@RequestParam List<Long> ids);
 }

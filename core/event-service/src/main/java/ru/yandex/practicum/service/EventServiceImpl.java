@@ -19,7 +19,6 @@ import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.PublicParameter;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
-import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
@@ -37,8 +36,11 @@ import ru.yandex.practicum.user.model.dto.UserWithoutEmailDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.event.model.QEvent.event;
 
@@ -57,16 +59,48 @@ public class EventServiceImpl implements EventService {
     private final AdminLocationClient adminLocationClient;
 
     @Override
-    public List<EventDto> getAllByAdmin(final AdminParameter adminParameter) {
-        final List<Event> lists = eventStorage.findAll(getSpecification(adminParameter),
+    public List<EventDtoWithObjects> getAllByAdmin(final AdminParameter adminParameter) {
+        final List<Event> events = eventStorage.findAll(getSpecification(adminParameter),
                 PageRequest.of(adminParameter.getFrom() / adminParameter.getSize(),
                         adminParameter.getSize()));
 
-        lists.forEach(event -> updateStats(event, adminParameter.getRangeStart(), adminParameter.getRangeEnd(), true));
+        events.forEach(event -> updateStats(event, adminParameter.getRangeStart(), adminParameter.getRangeEnd(), true));
+        Map<Long, UserDto> userDtoMap = getLongUserDtoMap(events);
+        Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
+        Map<Long, LocationDto> locationDtoMap = getLongLocationDtoMap(events);
 
-        return lists.stream()
-                .map(event -> cs.convert(event, EventDto.class))
-                .toList();
+
+        List<EventDtoWithObjects> eventDtoWithObjects = new ArrayList<>();
+        events.forEach(event -> eventDtoWithObjects.add(createDtoWithObjects(event,
+                categoryDtoMap.get(event.getCategory()),
+                userDtoMap.get(event.getInitiator()),
+                locationDtoMap.get(event.getLocation()))));
+
+        return eventDtoWithObjects;
+    }
+
+    private Map<Long, LocationDto> getLongLocationDtoMap(List<Event> events) {
+        return getLocationDtoMapByEvents(adminLocationClient.getAllByIds(events
+                .stream()
+                .map(Event::getLocation)
+                .toList()));
+    }
+
+    private Map<Long, CategoryDto> getLongCategoryDtoMap() {
+        return publicCategoryClient.getAll(0, Integer.MAX_VALUE)
+                .stream()
+                .collect(Collectors.toMap(CategoryDto::id, categoryDto1 -> categoryDto1));
+    }
+
+    private Map<Long, UserDto> getLongUserDtoMap(List<Event> events) {
+        return adminUserClient.getAll(events
+                                .stream()
+                                .map(Event::getInitiator)
+                                .toList(),
+                        0,
+                        Integer.MAX_VALUE)
+                .stream()
+                .collect(Collectors.toMap(UserDto::id, userDto -> userDto));
     }
 
     private Event update(Event eventInStorage, final UpdateEventDto updateEventDto) {
@@ -100,7 +134,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDto updateByAdmin(final long eventId, final UpdateEventDto updateEventDto) {
+    public EventDtoWithObjects updateByAdmin(final long eventId, final UpdateEventDto updateEventDto) {
         Event eventInStorage = eventStorage.getByIdOrElseThrow(eventId);
 
         if (!ObjectUtils.isEmpty(updateEventDto.stateAction())) {
@@ -131,17 +165,19 @@ public class EventServiceImpl implements EventService {
             eventInStorage.setLocation(locationDto.id());
         }
 
-        return cs.convert(eventStorage.save(update(eventInStorage, updateEventDto)), EventDto.class);
+        eventStorage.save(update(eventInStorage, updateEventDto));
+
+        UserDto userDto = getUserDto(eventInStorage.getId());
+
+        CategoryDto categoryDto = publicCategoryClient.getById(eventInStorage.getCategory());
+        LocationDto locationDto = adminLocationClient.getById(eventInStorage.getLocation());
+
+        return createDtoWithObjects(eventInStorage, categoryDto, userDto, locationDto);
     }
 
     @Override
     public EventDtoWithObjects create(final CreateEventDto createEventDto, final long userId) {
-        UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
-
-        User user = cs.convert(userDto, User.class);
+        UserDto userDto = getUserDto(userId);
 
         CategoryDto categoryDto = publicCategoryClient.getById(createEventDto.category());
 
@@ -150,7 +186,7 @@ public class EventServiceImpl implements EventService {
 
         Event event = cs.convert(createEventDto, Event.class);
 
-        event.setInitiator(user.getId());
+        event.setInitiator(userDto.id());
         event.setCategory(categoryDto.id());
         event.setLocation(locationDto.id());
         event.setCreatedOn(LocalDateTime.now());
@@ -158,11 +194,18 @@ public class EventServiceImpl implements EventService {
 
         eventStorage.save(event);
 
-        return createDtoWithObjects(event, categoryDto, user, locationDto);
+        return createDtoWithObjects(event, categoryDto, userDto, locationDto);
+    }
+
+    private UserDto getUserDto(long userId) {
+        return adminUserClient.getAll(List.of(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
     }
 
     private EventDtoWithObjects createDtoWithObjects(Event event, CategoryDto categoryDto,
-                                                     User user, LocationDto locationDto) {
+                                                     UserDto userDto, LocationDto locationDto) {
         return EventDtoWithObjects.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -172,8 +215,8 @@ public class EventServiceImpl implements EventService {
                 .description(event.getDescription())
                 .eventDate(event.getEventDate())
                 .initiator(UserWithoutEmailDto.builder()
-                        .id(user.getId())
-                        .name(user.getName())
+                        .id(userDto.id())
+                        .name(userDto.name())
                         .build())
                 .location(locationDto)
                 .paid(event.isPaid())
@@ -201,31 +244,48 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventDto> getAllByUserId(final long userId, final int from, final int size) {
-        adminUserClient.getAll(List.of(userId), 0, 1)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+    public List<EventDtoWithObjects> getAllByUserId(final long userId, final int from, final int size) {
+        UserDto userDto = getUserDto(userId);
 
-        return eventStorage.findAllByInitiator(userId, PageRequest.of(from, size)).stream()
-                .map(event -> cs.convert(event, EventDto.class))
+        List<Event> events = eventStorage.findAllByInitiator(userId, PageRequest.of(from, size));
+        Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
+
+        Map<Long, LocationDto> locationDtoMap = getLocationDtoMapByEvents(adminLocationClient.getAllByIds(events
+                .stream()
+                .map(Event::getLocation)
+                .toList()));
+
+        return events
+                .stream()
+                .map(event1 -> createDtoWithObjects(event1,
+                        categoryDtoMap.get(event1.getCategory()),
+                        userDto,
+                        locationDtoMap.get(event1.getLocation())))
                 .toList();
+
+    }
+
+    private Map<Long, LocationDto> getLocationDtoMapByEvents(List<LocationDto> adminLocationClient) {
+        return adminLocationClient
+                .stream()
+                .collect(Collectors.toMap(LocationDto::id, locationDto -> locationDto));
     }
 
     @Override
-    public EventDto getByIdAndUserId(final long eventId, final long userId) {
-        adminUserClient.getAll(List.of(userId), 0, 1)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
+    public EventDtoWithObjects getByIdAndUserId(final long eventId, final long userId) {
+        UserDto userDto = getUserDto(userId);
 
         Event event = eventStorage.getByIdOrElseThrow(eventId);
         checkIfTheUserIsTheEventCreator(userId, eventId);
-        return cs.convert(event, EventDto.class);
+
+        CategoryDto categoryDto = publicCategoryClient.getById(event.getCategory());
+        LocationDto locationDto = adminLocationClient.getById(event.getLocation());
+
+        return createDtoWithObjects(event, categoryDto, userDto, locationDto);
     }
 
     @Override
-    public EventDto getById(final long eventId, final HttpServletRequest request) {
+    public EventDtoWithObjects getById(final long eventId, final HttpServletRequest request) {
         Event event = eventStorage.getByIdOrElseThrow(eventId);
 
         if (event.getState() != State.PUBLISHED) {
@@ -235,11 +295,15 @@ public class EventServiceImpl implements EventService {
         addStats(request);
 
         updateStats(event, LocalDateTime.now().minusDays(3), LocalDateTime.now().plusDays(3), true);
-        return cs.convert(eventStorage.save(event), EventDto.class);
+        UserDto userDto = getUserDto(event.getInitiator());
+        CategoryDto categoryDto = publicCategoryClient.getById(event.getCategory());
+        LocationDto locationDto = adminLocationClient.getById(event.getLocation());
+
+        return createDtoWithObjects(event, categoryDto, userDto, locationDto);
     }
 
     @Override
-    public List<EventDto> getAll(final PublicParameter publicParameter, final HttpServletRequest request) {
+    public List<EventDtoWithObjects> getAll(final PublicParameter publicParameter, final HttpServletRequest request) {
         BooleanExpression predicate = event.isNotNull();
 
         if (!ObjectUtils.isEmpty(publicParameter.getText())) {
@@ -257,32 +321,52 @@ public class EventServiceImpl implements EventService {
 
         addStats(request);
 
-        final List<Event> lists = eventStorage.findAll(
+        final List<Event> events = eventStorage.findAll(
                 predicate, PageRequest.of(publicParameter.getFrom() / publicParameter.getSize(),
                         publicParameter.getSize())
         );
 
-        lists.forEach(event -> updateStats(event, publicParameter.getRangeStart(), publicParameter.getRangeEnd(), false));
+        events.forEach(event -> updateStats(event, publicParameter.getRangeStart(),
+                publicParameter.getRangeEnd(), false));
 
-        eventStorage.saveAll(lists);
+        eventStorage.saveAll(events);
 
-        return lists.stream()
-                .map(event -> cs.convert(event, EventDto.class))
+        Map<Long, UserDto> userDtoMap = getLongUserDtoMap(events);
+
+        Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
+
+        Map<Long, LocationDto> locationDtoMap = getLocationDtoMapByEvents(adminLocationClient.getAllByIds(events
+                .stream()
+                .map(Event::getLocation)
+                .toList()));
+
+        return events
+                .stream()
+                .map(event1 -> createDtoWithObjects(event1,
+                        categoryDtoMap.get(event1.getCategory()),
+                        userDtoMap.get(event1.getInitiator()),
+                        locationDtoMap.get(event1.getLocation())))
                 .toList();
+
     }
 
     @Override
-    public List<EventDto> getAllByLocation(final double lat, final double lon, final double radius) {
-        List<LocationDto> locationDtos = adminLocationClient.getAllByCoordinates(lat, lon, radius);
+    public List<EventDtoWithObjects> getAllByLocation(final double lat, final double lon, final double radius) {
+        Map<Long, LocationDto> locationDtoMap = getLocationDtoMapByEvents(adminLocationClient
+                .getAllByCoordinates(lat, lon, radius));
 
-        List<Event> eventStorageAllByLocationIn = eventStorage.findAllByLocationIn(locationDtos
+        List<Event> events = eventStorage.findAllByLocationIn(locationDtoMap.keySet());
+        Map<Long, UserDto> userDtoMap = getLongUserDtoMap(events);
+        Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
+
+        return events
                 .stream()
-                .map(LocationDto::id)
-                .toList());
-
-        return eventStorageAllByLocationIn.stream()
-                .map(event -> cs.convert(event, EventDto.class))
+                .map(event1 -> createDtoWithObjects(event1,
+                        categoryDtoMap.get(event1.getCategory()),
+                        userDtoMap.get(event1.getInitiator()),
+                        locationDtoMap.get(event1.getLocation())))
                 .toList();
+
     }
 
     @Override
@@ -305,17 +389,12 @@ public class EventServiceImpl implements EventService {
 
         eventStorage.save(update(eventInStorage, updateEventDto));
 
-        UserDto userDto = adminUserClient.getAll(List.of(userId), 0, 1)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(User.class.getSimpleName(), userId));
-
-        User user = cs.convert(userDto, User.class);
+        UserDto userDto = getUserDto(userId);
 
         CategoryDto categoryDto = publicCategoryClient.getById(eventInStorage.getCategory());
         LocationDto locationDto = adminLocationClient.getById(eventInStorage.getLocation());
 
-        return createDtoWithObjects(eventInStorage, categoryDto, user, locationDto);
+        return createDtoWithObjects(eventInStorage, categoryDto, userDto, locationDto);
     }
 
     private void addStats(final HttpServletRequest request) {
@@ -323,7 +402,8 @@ public class EventServiceImpl implements EventService {
         endpointHit.app("event-service");
         endpointHit.ip(request.getRemoteAddr());
         endpointHit.uri(request.getRequestURI());
-        endpointHit.timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString());
+        endpointHit.timestamp(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString());
 
         statsService.hit(endpointHit);
     }

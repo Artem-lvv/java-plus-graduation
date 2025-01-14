@@ -12,7 +12,7 @@ import ru.yandex.practicum.compilation.model.Compilation;
 import ru.yandex.practicum.compilation.model.dto.CompilationDto;
 import ru.yandex.practicum.compilation.model.dto.CreateCompilationDto;
 import ru.yandex.practicum.compilation.model.dto.UpdateCompilationDto;
-import ru.yandex.practicum.event.model.dto.EventDto;
+import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.exception.type.NotFoundException;
 import ru.yandex.practicum.storage.CompilationStorage;
 
@@ -33,7 +33,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto create(final CreateCompilationDto createCompilationDto) {
         Compilation compilation = cs.convert(createCompilationDto, Compilation.class);
 
-        List<EventDto> eventDtos = new ArrayList<>();
+        List<EventDtoWithObjects> eventDtos = new ArrayList<>();
 
         if (!ObjectUtils.isEmpty(createCompilationDto.events())) {
             eventDtos = adminEventClient.getAll(null,
@@ -74,7 +74,7 @@ public class CompilationServiceImpl implements CompilationService {
             compilationInStorage.setTitle(compilationInStorage.getTitle());
         }
 
-        List<EventDto> eventDtos = new ArrayList<>();
+        List<EventDtoWithObjects> eventDtos = new ArrayList<>();
 
         if (!ObjectUtils.isEmpty(updateCompilationDto.events())) {
             eventDtos = adminEventClient.getAll(null,
@@ -116,7 +116,7 @@ public class CompilationServiceImpl implements CompilationService {
         List<CompilationDto> compilationDtos = new ArrayList<>();
 
         for (Compilation compilation : compilations) {
-            List<EventDto> eventDtos = new ArrayList<>();
+            List<EventDtoWithObjects> eventDtos = new ArrayList<>();
 
             if (!compilation.getEvents().isEmpty()) {
                 eventDtos = adminEventClient.getAll(null,
@@ -144,7 +144,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto getById(final long compId) {
         Compilation compilation = compilationStorage.getByIdOrElseThrow(compId);
 
-        List<EventDto> eventDtos = new ArrayList<>();
+        List<EventDtoWithObjects> eventDtos = new ArrayList<>();
 
         if (!ObjectUtils.isEmpty(compilation.getEvents())) {
             eventDtos = adminEventClient.getAll(null,

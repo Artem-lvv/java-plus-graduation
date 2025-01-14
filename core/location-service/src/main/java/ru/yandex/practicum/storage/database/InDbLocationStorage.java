@@ -71,11 +71,19 @@ public class InDbLocationStorage implements LocationStorage {
 
     @Override
     public Optional<Location> getByCoordinates(double lat, double lon) {
+        log.info("Get Optional<{}> by lat and lon - {}", SIMPLE_NAME, lat);
         return locationRepository.findByLatAndLon(lat, lon);
     }
 
     @Override
     public List<Location> getByLatAndLonAndRadius(double lat, double lon, double radius) {
+        log.info("Get List<{}> by lat - {} lon - {} and radius- {}", SIMPLE_NAME, lat, lon, radius);
         return locationRepository.findByLatAndLonAndRadius(lat, lon, radius);
+    }
+
+    @Override
+    public List<Location> findByIds(List<Long> ids) {
+        log.info("Get List<{}> by ids - {}", SIMPLE_NAME, ids);
+        return locationRepository.findAllById(ids);
     }
 }

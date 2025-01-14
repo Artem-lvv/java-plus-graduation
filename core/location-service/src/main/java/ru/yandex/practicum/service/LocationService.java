@@ -24,4 +24,6 @@ public interface LocationService {
     LocationDto getByCoordinates(double lat, double lon);
 
     List<LocationDto> getAllByCoordinates(Double lat, Double lon, double radius);
+
+    List<LocationDto> getAllByIds(List<Long> ids);
 }

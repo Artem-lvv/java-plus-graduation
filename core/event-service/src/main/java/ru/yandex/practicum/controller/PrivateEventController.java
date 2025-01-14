@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
-import ru.yandex.practicum.event.model.dto.EventDto;
 import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.service.EventService;
@@ -43,7 +42,7 @@ public class PrivateEventController {
     }
 
     @GetMapping
-    public List<EventDto> getAllByUserId(@PathVariable @Positive final long userId,
+    public List<EventDtoWithObjects> getAllByUserId(@PathVariable @Positive final long userId,
                                          @RequestParam(defaultValue = "0") @PositiveOrZero final int from,
                                          @RequestParam(defaultValue = "10") @Positive final int size) {
         log.info("Request for user {} by id - {} start - {} size - {}", SIMPLE_NAME, userId, from, size);
@@ -51,7 +50,7 @@ public class PrivateEventController {
     }
 
     @GetMapping("/{eventId}")
-    public EventDto getByIdAndUserId(@PathVariable @Positive final long userId,
+    public EventDtoWithObjects getByIdAndUserId(@PathVariable @Positive final long userId,
                                      @PathVariable @Positive final long eventId) {
         log.info("{} request by id - {} by user with id - {}", SIMPLE_NAME, eventId, userId);
         return eventService.getByIdAndUserId(eventId, userId);
