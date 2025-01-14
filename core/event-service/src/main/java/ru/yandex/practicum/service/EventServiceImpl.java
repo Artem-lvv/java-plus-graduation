@@ -167,7 +167,7 @@ public class EventServiceImpl implements EventService {
 
         eventStorage.save(update(eventInStorage, updateEventDto));
 
-        UserDto userDto = getUserDto(eventInStorage.getId());
+        UserDto userDto = getUserDto(eventInStorage.getInitiator());
 
         CategoryDto categoryDto = publicCategoryClient.getById(eventInStorage.getCategory());
         LocationDto locationDto = adminLocationClient.getById(eventInStorage.getLocation());
