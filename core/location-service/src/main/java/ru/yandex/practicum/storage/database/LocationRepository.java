@@ -2,6 +2,8 @@ package ru.yandex.practicum.storage.database;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.yandex.practicum.location.model.Location;
 
 import java.util.List;
@@ -13,5 +15,11 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     List<Location> findAllByNameContainingIgnoreCase(final String text, final PageRequest page);
 
-    List<Location> findByLatAndLonAndRadius(final double lat, final double lon, final double radius);
+    @Query(value = "SELECT l.* " +
+            "FROM locations l " +
+            "WHERE distance(l.lat, l.lon, :lat, :lon) < :radius", nativeQuery = true)
+    List<Location> findByLatAndLonAndRadius(@Param("lat") final double lat,
+                                            @Param("lon") final double lon,
+                                            @Param("radius") final double radius);
+
 }
