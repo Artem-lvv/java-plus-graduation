@@ -5,7 +5,6 @@ spring:
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
-
   sql:
     init:
       mode: always
@@ -16,6 +15,13 @@ spring:
     properties:
       hibernate:
         format_sql: true  # Форматирование SQL-запросов для удобочитаемости
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+        retry-on-all-operations: true
+      service-discovery:
+        timeout: 1s
 
 resilience4j.circuitbreaker:
   instances:

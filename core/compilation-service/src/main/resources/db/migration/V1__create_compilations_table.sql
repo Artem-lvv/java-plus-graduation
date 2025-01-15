@@ -4,9 +4,3 @@ CREATE TABLE IF NOT EXISTS compilations
     pinned BOOLEAN     NOT NULL,
     title  VARCHAR(50) NOT NULL UNIQUE
 );
-
-CREATE TABLE IF NOT EXISTS compilations_events
-(
-    compilation_id BIGINT NOT NULL REFERENCES compilations (id) ON DELETE CASCADE,
-    event_id       BIGINT NOT NULL
-);

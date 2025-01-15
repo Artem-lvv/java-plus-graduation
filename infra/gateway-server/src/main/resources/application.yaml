@@ -18,8 +18,6 @@ spring:
         retry-on-all-operations: true
       service-discovery:
         timeout: 1s
-    #        max-retries-on-next-service-instance: 40
-#        max-retries-on-same-service-instance: 40
 
     gateway:
       httpclient:
