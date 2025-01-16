@@ -1,0 +1,54 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5438/${POSTGRES_DB:request-db}
+#    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: none  # Автоматическое создание или обновление таблиц
+    show-sql: true  # Показывать SQL-запросы в логах
+    properties:
+      hibernate:
+        format_sql: true  # Форматирование SQL-запросов для удобочитаемости
+
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+        retry-on-all-operations: true
+      service-discovery:
+        timeout: 1s
+    openfeign:
+      okhttp:
+        enabled: true
+
+server:
+  port: 0
+
+statsService:
+  url:
+  name: stats-service
+
+admin:
+  user:
+    service:
+      url:
+  events:
+    service:
+      url:
+
+resilience4j.circuitbreaker:
+  instances:
+    myService:
+      slidingWindowSize: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000 # 10 секунд в миллисекундах
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: COUNT_BASED
+      minimumNumberOfCalls: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true

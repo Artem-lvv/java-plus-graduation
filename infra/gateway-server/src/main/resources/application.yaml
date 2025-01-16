@@ -12,10 +12,26 @@ spring:
         enabled: true
         serviceId: config-server
 
+    loadbalancer:
+      retry:
+        enabled: true
+        retry-on-all-operations: true
+      service-discovery:
+        timeout: 1s
+
+    gateway:
+      httpclient:
+        connect-timeout: 1000000
+        response-timeout: 5m
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+    fetch-registry: true
+    registry-fetch-interval-seconds: 2
+
   instance:
     preferIpAddress: true
     hostname: localhost
@@ -24,5 +40,7 @@ eureka:
 
 server:
   port: 8080
+
+
 
 
