@@ -1,0 +1,19 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Общая конфигурация для Avro
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    properties:
+      schema.registry.url: http://localhost:9102
+
+collector:
+  topic:
+    stats:
+      user-actions:
+        v1: stats.user-actions.v1
+
+grpc:
+  server:
+    port: ${COLLECTOR_GRPC_PORT:0}
