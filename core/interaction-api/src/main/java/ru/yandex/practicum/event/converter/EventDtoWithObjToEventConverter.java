@@ -28,7 +28,7 @@ public class EventDtoWithObjToEventConverter implements Converter<EventDtoWithOb
                 .requestModeration(source.requestModeration())
                 .state(source.state())
                 .title(source.title())
-                .views(source.views())
+                .rating(source.rating())
                 .build();
     }
 }

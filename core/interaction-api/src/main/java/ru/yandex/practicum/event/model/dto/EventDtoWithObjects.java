@@ -29,6 +29,6 @@ public record EventDtoWithObjects(
         boolean requestModeration,
         State state,
         String title,
-        long views
+        double rating
 ) {
 }
