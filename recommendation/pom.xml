@@ -20,6 +20,7 @@
         <module>aggregator</module>
         <module>aggregator-avro-model</module>
         <module>analyzer</module>
+        <module>recommendation-grpc-api</module>
     </modules>
 
     <dependencyManagement>

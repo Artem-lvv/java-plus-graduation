@@ -4,6 +4,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
+import ru.yandex.practicum.grpc.recommendation.RecommendationsControllerGrpc;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
 import ru.yandex.practicum.state.State;
@@ -57,6 +59,12 @@ public class EventServiceImpl implements EventService {
     private final PublicCategoryClient publicCategoryClient;
     private final PrivateUserRequestClient privateUserRequestClient;
     private final AdminLocationClient adminLocationClient;
+
+    @GrpcClient("analyzer")
+    private RecommendationsControllerGrpc.RecommendationsControllerBlockingStub clientAnalyzerGrpc;
+
+    @GrpcClient("collector")
+    private RecommendationsControllerGrpc.RecommendationsControllerBlockingStub clientCollectorGrpc;
 
     @Override
     public List<EventDtoWithObjects> getAllByAdmin(final AdminParameter adminParameter) {

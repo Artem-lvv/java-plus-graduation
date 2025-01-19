@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/${POSTGRES_DB:category-db}
+    #    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+    sql:
+      init:
+        mode: always
+    jpa:
+      hibernate:
+        ddl-auto: none  # Автоматическое создание или обновление таблиц
+      show-sql: true  # Показывать SQL-запросы в логах
+      properties:
+        hibernate:
+          format_sql: true  # Форматирование SQL-запросов для удобочитаемости
+    cloud:
+      loadbalancer:
+        retry:
+          enabled: true
+          retry-on-all-operations: true
+        service-discovery:
+          timeout: 1s
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:9102
+        specific.avro.reader: true
+
+server:
+  port: 0
+
+grpc:
+  server:
+    port: ${ANALYZER_GRPC_PORT:0}

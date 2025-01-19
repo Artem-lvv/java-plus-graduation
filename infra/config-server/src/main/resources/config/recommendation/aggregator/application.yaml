@@ -14,6 +14,9 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
 
+server:
+  port: 0
+
 stats:
   events-similarity:
     v1: stats.events-similarity.v1
