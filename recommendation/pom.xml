@@ -18,6 +18,8 @@
         <module>collector-grpc-api</module>
         <module>collector-avro-model</module>
         <module>aggregator</module>
+        <module>aggregator-avro-model</module>
+        <module>analyzer</module>
     </modules>
 
     <dependencyManagement>

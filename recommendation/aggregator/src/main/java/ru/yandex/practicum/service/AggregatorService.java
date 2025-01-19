@@ -1,7 +1,7 @@
-package ru.yandex.practicum.api.in.kafka.service;
+package ru.yandex.practicum.service;
 
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 
-public interface ConsumerKafkaService {
+public interface AggregatorService {
     void consumeUserActionAvro(UserActionAvro userActionAvro);
 }

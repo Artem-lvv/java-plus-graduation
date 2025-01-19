@@ -1,12 +1,19 @@
 spring:
   kafka:
-    bootstrap-servers: localhost:9092
-    properties:
-      schema.registry.url: http://localhost:9102
     consumer:
+      bootstrap-servers: localhost:9092
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:9102
+        specific.avro.reader: true
+    producer:
+      bootstrap-servers: localhost:9092
+      properties:
+        schema.registry.url: http://localhost:9102
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
 
-  redis:
-    host: localhost
-    port: 6379
+stats:
+  events-similarity:
+    v1: stats.events-similarity.v1

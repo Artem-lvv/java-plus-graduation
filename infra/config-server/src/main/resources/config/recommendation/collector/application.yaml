@@ -2,11 +2,10 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
+      properties:
+        schema.registry.url: http://localhost:9102
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      # Общая конфигурация для Avro
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-    properties:
-      schema.registry.url: http://localhost:9102
 
 collector:
   topic:

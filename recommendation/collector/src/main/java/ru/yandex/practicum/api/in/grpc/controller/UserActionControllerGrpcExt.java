@@ -7,7 +7,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
-import ru.yandex.practicum.api.in.grpc.service.UserActionServiceIn;
+import ru.yandex.practicum.service.CollectorService;
 import ru.yandex.practicum.grpc.collector.controller.UserActionControllerGrpc;
 import ru.yandex.practicum.grpc.collector.user.UserActionProto;
 
@@ -15,7 +15,7 @@ import ru.yandex.practicum.grpc.collector.user.UserActionProto;
 @GrpcService
 @RequiredArgsConstructor
 public class UserActionControllerGrpcExt extends UserActionControllerGrpc.UserActionControllerImplBase {
-    private final UserActionServiceIn userActionService;
+    private final CollectorService userActionService;
 
     @Override
     public void collectUserAction(UserActionProto request, StreamObserver<Empty> responseObserver) {
