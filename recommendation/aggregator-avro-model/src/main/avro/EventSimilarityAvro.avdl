@@ -5,6 +5,6 @@ protocol EventSimilarityProtocol {
 		int eventA;          // Идентификатор события А
 		int eventB;         // Идентификатор события B
 		float score;		// Значение рассчитанного сходства мероприятий;
-		long timestamp;       // Временная метка действия
+		long timestamp;        // Временная метка действия
 	}
 }
