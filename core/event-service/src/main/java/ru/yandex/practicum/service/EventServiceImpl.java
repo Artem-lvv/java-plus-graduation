@@ -86,6 +86,7 @@ public class EventServiceImpl implements EventService {
                 PageRequest.of(adminParameter.getFrom() / adminParameter.getSize(),
                         adminParameter.getSize()));
 
+        events.forEach(event -> updateStats(event, adminParameter.getRangeStart(), adminParameter.getRangeEnd(), true));
         Map<Long, UserDto> userDtoMap = getLongUserDtoMap(events);
         Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
         Map<Long, LocationDto> locationDtoMap = getLongLocationDtoMap(events);
@@ -326,6 +327,7 @@ public class EventServiceImpl implements EventService {
 
         clientCollectorGrpc.collectUserAction(userActionProto);
 
+        updateStats(event, LocalDateTime.now().minusDays(3), LocalDateTime.now().plusDays(3), true);
         UserDto userDto = getUserDto(event.getInitiator());
         CategoryDto categoryDto = publicCategoryClient.getById(event.getCategory());
         LocationDto locationDto = adminLocationClient.getById(event.getLocation());
@@ -356,6 +358,9 @@ public class EventServiceImpl implements EventService {
                 predicate, PageRequest.of(publicParameter.getFrom() / publicParameter.getSize(),
                         publicParameter.getSize())
         );
+
+        events.forEach(event -> updateStats(event, publicParameter.getRangeStart(),
+                publicParameter.getRangeEnd(), false));
 
         eventStorage.saveAll(events);
 
@@ -527,7 +532,6 @@ public class EventServiceImpl implements EventService {
                 .filter(requestDto -> requestDto.status() == State.CONFIRMED)
                 .count();
 
-        event.setRating(views);
         event.setConfirmedRequests((int) confirmedRequests);
     }
 

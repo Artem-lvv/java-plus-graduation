@@ -10,14 +10,16 @@ import ru.yandex.practicum.grpc.collector.user.UserActionProto;
 public class UserActionProtoToAvroConverter implements Converter<UserActionProto, UserActionAvro> {
     @Override
     public UserActionAvro convert(UserActionProto source) {
+        ActionTypeAvro actionTypeAvro = switch (source.getActionType()) {
+            case ACTION_VIEW -> ActionTypeAvro.VIEW;
+            case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
+            case ACTION_LIKE -> ActionTypeAvro.LIKE;
+            case UNRECOGNIZED -> null;
+        };
         return UserActionAvro.newBuilder()
                 .setUserId((int) source.getUserId())
                 .setEventId((int) source.getEventId())
-                .setActionType(switch (source.getActionType()) {
-                    case ACTION_VIEW -> ActionTypeAvro.VIEW;
-                    case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
-                    case ACTION_LIKE -> ActionTypeAvro.LIKE;
-                    case UNRECOGNIZED -> null;})
+                .setActionType(actionTypeAvro)
                 .setTimestamp((source.getTimestamp().getSeconds() * 1000)
                         + (source.getTimestamp().getNanos() / 1000000))
                 .build();

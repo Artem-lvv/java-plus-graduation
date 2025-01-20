@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
-import ru.yandex.practicum.api.out.kafka.KafkaTemplateOutComponent;
+import ru.yandex.practicum.api.outData.kafka.KafkaTemplateOutComponent;
 import ru.yandex.practicum.grpc.collector.user.UserActionProto;
 
 @Slf4j

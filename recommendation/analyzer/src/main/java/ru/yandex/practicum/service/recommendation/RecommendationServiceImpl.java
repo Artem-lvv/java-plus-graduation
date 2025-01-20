@@ -7,6 +7,7 @@ import ru.yandex.practicum.grpc.recommendation.InteractionsCountRequestProto;
 import ru.yandex.practicum.grpc.recommendation.RecommendedEventProto;
 import ru.yandex.practicum.grpc.recommendation.SimilarEventsRequestProto;
 import ru.yandex.practicum.grpc.recommendation.UserPredictionsRequestProto;
+import ru.yandex.practicum.model.EventSimilarity;
 import ru.yandex.practicum.model.UserAction;
 import ru.yandex.practicum.repository.EventSimilarityRepository;
 import ru.yandex.practicum.repository.UserActionRepository;
@@ -30,8 +31,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         //  Get recently interacted events by user
         List<Integer> recentlyInteractedEvents = userActionRepository
-                .findRecentInteractionsByUser(userId, maxResults)
+                .findRecentInteractionsByUser(userId)
                 .stream()
+                .limit(maxResults)
                 .map(UserAction::getEventId)
                 .toList();
 
@@ -42,12 +44,16 @@ public class RecommendationServiceImpl implements RecommendationService {
         // Find similar events the user hasn’t interacted with
         List<RecommendedEventProto> recommendations = recentlyInteractedEvents
                 .stream()
-                .flatMap(eventId -> eventSimilarityRepository.findSimilarEvents(eventId)
+                .flatMap(eventId -> eventSimilarityRepository.findRawSimilarEvents(eventId)
                         .stream())
                 .filter(event -> !userActionRepository
-                        .hasUserInteractedWithEvent(userId, event.getEventId()))
-                .sorted(Comparator.comparingDouble(RecommendedEventProto::getScore).reversed())
+                        .hasUserInteractedWithEvent(userId,  event.getEventA()))
+                .sorted(Comparator.comparingDouble(EventSimilarity::getScore).reversed())
                 .limit(maxResults)
+                .map(eventSimilarity -> RecommendedEventProto.newBuilder()
+                        .setEventId(eventSimilarity.getEventA())
+                        .setScore(eventSimilarity.getScore())
+                        .build())
                 .collect(Collectors.toList());
 
         return recommendations;
@@ -60,7 +66,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         int maxResults = request.getMaxResults();
 
         // Get all similar events for the given event ID
-        List<RecommendedEventProto> similarEvents = eventSimilarityRepository.findSimilarEvents(eventId);
+        List<RecommendedEventProto> similarEvents = eventSimilarityRepository
+                .findRawSimilarEvents(eventId)
+                .stream()
+                .map(eventSimilarity -> RecommendedEventProto.newBuilder()
+                        .setEventId(eventSimilarity.getEventA())
+                        .setScore(eventSimilarity.getScore())
+                        .build())
+                .toList();
 
         // Exclude events the user has already interacted with
         List<Integer> userInteractions = userActionRepository.findInteractedEventsByUser(userId);
