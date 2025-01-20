@@ -404,9 +404,13 @@ services:
       retries: 15
       
   collector-service:
-    build: core/collector-service
+    build: recommendation/collector
     container_name: collector-service
     depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
       config-server:
         condition: service_healthy
       discovery-server:
@@ -423,9 +427,13 @@ services:
       retries: 10
 
   aggregator-service:
-    build: core/aggregator-service
+    build: recommendation/aggregator
     container_name: aggregator-service
     depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
       config-server:
         condition: service_healthy
       discovery-server:
@@ -442,9 +450,13 @@ services:
       retries: 10
 
   analyzer-service:
-    build: core/analyzer-service
+    build: recommendation/analyzer
     container_name: analyzer-service
     depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
       pg-analyzer-db:
         condition: service_healthy
       config-server:
