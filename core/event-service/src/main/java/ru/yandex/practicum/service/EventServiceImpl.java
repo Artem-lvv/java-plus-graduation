@@ -64,7 +64,6 @@ import static ru.yandex.practicum.event.model.QEvent.event;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private static final String SIMPLE_NAME = Event.class.getSimpleName();
-
     @Qualifier("mvcConversionService")
     private final ConversionService cs;
     private final StatsServiceApi statsService;
