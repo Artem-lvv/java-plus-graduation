@@ -20,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecommendationControllerGrpcExt extends RecommendationsControllerGrpc.RecommendationsControllerImplBase {
     private final RecommendationService recommendationService;
+
     @Override
     public void getRecommendationsForUser(UserPredictionsRequestProto request,
                                           StreamObserver<RecommendedEventProto> responseObserver) {

@@ -8,7 +8,10 @@ import ru.yandex.practicum.grpc.recommendation.UserPredictionsRequestProto;
 import java.util.List;
 
 public interface RecommendationService {
+
     List<RecommendedEventProto> getRecommendationsForUser(UserPredictionsRequestProto request);
+
     List<RecommendedEventProto> getSimilarEvents(SimilarEventsRequestProto request);
+
     List<RecommendedEventProto> getInteractionsCount(InteractionsCountRequestProto request);
 }

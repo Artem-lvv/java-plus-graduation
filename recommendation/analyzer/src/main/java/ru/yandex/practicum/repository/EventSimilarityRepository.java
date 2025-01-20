@@ -3,7 +3,6 @@ package ru.yandex.practicum.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.yandex.practicum.grpc.recommendation.RecommendedEventProto;
 import ru.yandex.practicum.model.EventSimilarity;
 
 import java.util.List;
