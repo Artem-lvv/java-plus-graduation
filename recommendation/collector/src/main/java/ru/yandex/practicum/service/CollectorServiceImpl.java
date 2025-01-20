@@ -19,13 +19,13 @@ public class CollectorServiceImpl implements CollectorService {
     private final KafkaTemplateOutComponent kafkaTemplateOutComponent;
 
     @Value("${collector.topic.stats.user-actions.v1:stats.user-actions.v1}")
-    private String STATS_USER_ACTIONS_V1_TOPIC;
+    private String statsUserActionsV1Topic;
 
     @Override
     public void collectUserAction(UserActionProto request, StreamObserver<Empty> responseObserver) {
         log.info("Collect user action proto- {}", request);
         UserActionAvro userActionAvro = conversionService.convert(request, UserActionAvro.class);
         log.info("Collect user action convert proto to avro - {} - {}", request,userActionAvro);
-        kafkaTemplateOutComponent.sendMessageKafka(STATS_USER_ACTIONS_V1_TOPIC, userActionAvro);
+        kafkaTemplateOutComponent.sendMessageKafka(statsUserActionsV1Topic, userActionAvro);
     }
 }

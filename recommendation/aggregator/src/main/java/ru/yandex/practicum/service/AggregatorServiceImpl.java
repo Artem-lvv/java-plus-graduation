@@ -23,10 +23,10 @@ public class AggregatorServiceImpl implements AggregatorService {
     private final Map<Long, Map<Long, Double>> minWeightsSums = new ConcurrentHashMap<>();
 
     @Value("${stats.events-similarity.v1:stats.events-similarity.v1}")
-    private String STATS_EVENTS_SIMILARITY_V1;
-    private final float VIEW_WEIGHT = 0.4F;
-    private final float LIKE_WEIGHT = 0.8F;
-    private final float REGISTER_WEIGHT = 1.0F;
+    private String statsEventsSimilarityV1;
+    private static final float VIEW_WEIGHT = 0.4F;
+    private static final float LIKE_WEIGHT = 0.8F;
+    private static final float REGISTER_WEIGHT = 1.0F;
 
 
     @Override
@@ -85,7 +85,7 @@ public class AggregatorServiceImpl implements AggregatorService {
 
     private void sendSimilarityToKafka(long eventA, long eventB, double similarity, long timestamp) {
         EventSimilarityAvro message = new EventSimilarityAvro((int) eventA,(int) eventB, (float) similarity, timestamp);
-        kafkaTemplate.sendMessageKafka(STATS_EVENTS_SIMILARITY_V1, message);
+        kafkaTemplate.sendMessageKafka(statsEventsSimilarityV1, message);
     }
 
     private double calculateMinWeightSum(long eventA, long eventB) {

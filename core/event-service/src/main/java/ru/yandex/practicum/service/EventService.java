@@ -2,7 +2,6 @@ package ru.yandex.practicum.service;
 
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Positive;
 import ru.yandex.practicum.event.model.AdminParameter;
 import ru.yandex.practicum.event.model.PublicParameter;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;

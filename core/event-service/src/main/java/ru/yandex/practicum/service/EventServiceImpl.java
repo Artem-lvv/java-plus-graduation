@@ -72,7 +72,7 @@ public class EventServiceImpl implements EventService {
     private final PublicCategoryClient publicCategoryClient;
     private final PrivateUserRequestClient privateUserRequestClient;
     private final AdminLocationClient adminLocationClient;
-    private final int MAX_RESULTS_RECOMMENDATION_SIZE = 10;
+    private static final int MAX_RESULTS_RECOMMENDATION_SIZE = 10;
     @GrpcClient("analyzer")
     private RecommendationsControllerGrpc.RecommendationsControllerBlockingStub clientAnalyzerGrpc;
 
