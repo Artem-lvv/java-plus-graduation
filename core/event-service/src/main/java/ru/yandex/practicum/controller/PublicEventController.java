@@ -32,17 +32,11 @@ public class PublicEventController {
     private static final String SIMPLE_NAME = Event.class.getSimpleName();
     private final EventService eventService;
 
-    @ModelAttribute
-    public long extractUserId(@RequestHeader("X-EWM-USER-ID") long userId) {
-        return userId;
-    }
-
     @GetMapping("/{id}")
     public EventDtoWithObjects getById(@PathVariable @Positive final long id,
-                                       final HttpServletRequest request,
-                                       @ModelAttribute("userId") long userId) {
+                                       final HttpServletRequest request) {
         log.info("Public event {} by id - {}", SIMPLE_NAME, id);
-        return eventService.getById(id, request, userId);
+        return eventService.getById(id, request, (long) request.getAttribute("userId"));
     }
 
     @GetMapping
@@ -62,14 +56,15 @@ public class PublicEventController {
     }
 
     @GetMapping("/recommendations")
-    public List<EventDtoWithObjects> getRecommendations(@ModelAttribute("userId") long userId) {
+    public List<EventDtoWithObjects> getRecommendations(final HttpServletRequest request) {
+        long userId = (long) request.getAttribute("userId");
         log.info("Public event get recommendations {} by user id - {}", SIMPLE_NAME, userId);
         return eventService.getRecommendations(userId);
     }
 
     @PutMapping("/{eventId}/like")
-    public void addLike(@PathVariable @Positive final long eventId,
-                        @ModelAttribute("userId") long userId) {
+    public void addLike(@PathVariable @Positive final long eventId, final HttpServletRequest request) {
+        long userId = (long) request.getAttribute("userId");
         log.info("Public event add like {} by user id - {} and event id - {}", SIMPLE_NAME, userId, eventId);
         eventService.addLikeEvent(eventId, userId);
     }
