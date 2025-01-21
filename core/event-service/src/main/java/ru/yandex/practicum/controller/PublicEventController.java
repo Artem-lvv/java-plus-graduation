@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -31,9 +32,15 @@ public class PublicEventController {
     private static final String SIMPLE_NAME = Event.class.getSimpleName();
     private final EventService eventService;
 
+    @ModelAttribute
+    public long extractUserId(@RequestHeader("X-EWM-USER-ID") long userId) {
+        return userId;
+    }
+
     @GetMapping("/{id}")
-    public EventDtoWithObjects getById(@PathVariable @Positive final long id, final HttpServletRequest request,
-                                       @RequestHeader("X-EWM-USER-ID") long userId) {
+    public EventDtoWithObjects getById(@PathVariable @Positive final long id,
+                                       final HttpServletRequest request,
+                                       @ModelAttribute("userId") long userId) {
         log.info("Public event {} by id - {}", SIMPLE_NAME, id);
         return eventService.getById(id, request, userId);
     }
@@ -55,14 +62,14 @@ public class PublicEventController {
     }
 
     @GetMapping("/recommendations")
-    public List<EventDtoWithObjects> getRecommendations(@RequestHeader("X-EWM-USER-ID") long userId) {
+    public List<EventDtoWithObjects> getRecommendations(@ModelAttribute("userId") long userId) {
         log.info("Public event get recommendations {} by user id - {}", SIMPLE_NAME, userId);
         return eventService.getRecommendations(userId);
     }
 
     @PutMapping("/{eventId}/like")
     public void addLike(@PathVariable @Positive final long eventId,
-                        @RequestHeader("X-EWM-USER-ID") long userId) {
+                        @ModelAttribute("userId") long userId) {
         log.info("Public event add like {} by user id - {} and event id - {}", SIMPLE_NAME, userId, eventId);
         eventService.addLikeEvent(eventId, userId);
     }

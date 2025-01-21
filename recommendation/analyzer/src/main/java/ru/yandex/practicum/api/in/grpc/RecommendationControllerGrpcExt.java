@@ -6,6 +6,8 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.apache.commons.lang.SerializationException;
+import org.apache.kafka.common.errors.ProducerFencedException;
 import ru.yandex.practicum.grpc.recommendation.InteractionsCountRequestProto;
 import ru.yandex.practicum.grpc.recommendation.RecommendationsControllerGrpc;
 import ru.yandex.practicum.grpc.recommendation.RecommendedEventProto;
@@ -31,7 +33,7 @@ public class RecommendationControllerGrpcExt extends RecommendationsControllerGr
             recommendationsForUser.forEach(responseObserver::onNext);
 
             responseObserver.onCompleted();
-        } catch (Exception e) {
+        } catch (ProducerFencedException | SerializationException e) {
             log.error(e.getMessage(), e);
 
             responseObserver.onError(new StatusRuntimeException(
@@ -52,7 +54,7 @@ public class RecommendationControllerGrpcExt extends RecommendationsControllerGr
             similarEvents.forEach(responseObserver::onNext);
 
             responseObserver.onCompleted();
-        } catch (Exception e) {
+        } catch (ProducerFencedException | SerializationException  e) {
             log.error(e.getMessage(), e);
 
             responseObserver.onError(new StatusRuntimeException(
@@ -73,7 +75,7 @@ public class RecommendationControllerGrpcExt extends RecommendationsControllerGr
             interactionsCount.forEach(responseObserver::onNext);
 
             responseObserver.onCompleted();
-        } catch (Exception e) {
+        } catch (ProducerFencedException | SerializationException  e) {
             log.error(e.getMessage(), e);
 
             responseObserver.onError(new StatusRuntimeException(
