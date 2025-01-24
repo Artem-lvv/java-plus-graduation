@@ -1,9 +1,11 @@
 package ru.yandex.practicum.service;
 
+import com.google.protobuf.Timestamp;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +23,18 @@ import ru.yandex.practicum.event.model.PublicParameter;
 import ru.yandex.practicum.event.model.dto.CreateEventDto;
 import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
+import ru.yandex.practicum.exception.type.BadRequestException;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
+import ru.yandex.practicum.grpc.collector.controller.UserActionControllerGrpc;
+import ru.yandex.practicum.grpc.collector.user.ActionTypeProto;
+import ru.yandex.practicum.grpc.collector.user.UserActionProto;
+import ru.yandex.practicum.grpc.recommendation.RecommendationsControllerGrpc;
+import ru.yandex.practicum.grpc.recommendation.RecommendedEventProto;
+import ru.yandex.practicum.grpc.recommendation.UserPredictionsRequestProto;
 import ru.yandex.practicum.location.model.dto.CreateLocationDto;
 import ru.yandex.practicum.location.model.dto.LocationDto;
+import ru.yandex.practicum.request.model.dto.RequestDto;
 import ru.yandex.practicum.state.State;
 import ru.yandex.practicum.stats.api.StatsServiceApi;
 import ru.yandex.practicum.stats.model.EndpointHit;
@@ -37,10 +47,15 @@ import ru.yandex.practicum.user.model.dto.UserWithoutEmailDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static ru.yandex.practicum.event.model.QEvent.event;
 
@@ -57,6 +72,13 @@ public class EventServiceImpl implements EventService {
     private final PublicCategoryClient publicCategoryClient;
     private final PrivateUserRequestClient privateUserRequestClient;
     private final AdminLocationClient adminLocationClient;
+    private static final int MAX_RESULTS_RECOMMENDATION_SIZE = 10;
+    @GrpcClient("analyzer")
+    private RecommendationsControllerGrpc.RecommendationsControllerBlockingStub clientAnalyzerGrpc;
+
+    @GrpcClient("collector")
+    private UserActionControllerGrpc.UserActionControllerBlockingStub clientCollectorGrpc;
+
 
     @Override
     public List<EventDtoWithObjects> getAllByAdmin(final AdminParameter adminParameter) {
@@ -225,7 +247,7 @@ public class EventServiceImpl implements EventService {
                 .requestModeration(event.isRequestModeration())
                 .state(event.getState())
                 .title(event.getTitle())
-                .views(event.getViews())
+                .rating(event.getRating())
                 .build();
     }
 
@@ -285,7 +307,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDtoWithObjects getById(final long eventId, final HttpServletRequest request) {
+    public EventDtoWithObjects getById(final long eventId, final HttpServletRequest request, long userId) {
         Event event = eventStorage.getByIdOrElseThrow(eventId);
 
         if (event.getState() != State.PUBLISHED) {
@@ -293,6 +315,17 @@ public class EventServiceImpl implements EventService {
         }
 
         addStats(request);
+
+        UserActionProto userActionProto = UserActionProto.newBuilder()
+                .setEventId(eventId)
+                .setUserId(userId)
+                .setActionType(ActionTypeProto.ACTION_VIEW)
+                .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(System.currentTimeMillis() / 1000)
+                        .build())
+                .build();
+
+        clientCollectorGrpc.collectUserAction(userActionProto);
 
         updateStats(event, LocalDateTime.now().minusDays(3), LocalDateTime.now().plusDays(3), true);
         UserDto userDto = getUserDto(event.getInitiator());
@@ -397,6 +430,78 @@ public class EventServiceImpl implements EventService {
         return createDtoWithObjects(eventInStorage, categoryDto, userDto, locationDto);
     }
 
+    @Override
+    public List<EventDtoWithObjects> getRecommendations(long userId) {
+        UserDto userDto = getUserDto(userId);
+
+        UserPredictionsRequestProto predictionsRequestProto = UserPredictionsRequestProto.newBuilder()
+                .setUserId((int) userId)
+                .setMaxResults(MAX_RESULTS_RECOMMENDATION_SIZE)
+                .build();
+        Iterator<RecommendedEventProto> recommendationsForUser = clientAnalyzerGrpc
+                .getRecommendationsForUser(predictionsRequestProto);
+
+        Map<Integer, Float> eventIdToScopeMap = asStream(recommendationsForUser)
+                .collect(Collectors.toMap(recommendedEventProto -> recommendedEventProto.getEventId(),
+                        recommendedEventProto -> recommendedEventProto.getScore()));
+
+        List<Event> events = eventStorage.findAllById(eventIdToScopeMap.keySet()
+                .stream()
+                .map(long.class::cast)
+                .collect(Collectors.toSet()));
+
+        events.forEach(event -> event.setRating(eventIdToScopeMap.get(event.getId())));
+
+        Map<Long, CategoryDto> categoryDtoMap = getLongCategoryDtoMap();
+
+        Map<Long, LocationDto> locationDtoMap = getLocationDtoMapByEvents(adminLocationClient.getAllByIds(events
+                .stream()
+                .map(Event::getLocation)
+                .toList()));
+
+        return events
+                .stream()
+                .map(event1 -> createDtoWithObjects(event1,
+                        categoryDtoMap.get(event1.getCategory()),
+                        userDto,
+                        locationDtoMap.get(event1.getLocation())))
+                .toList();
+    }
+
+    @Override
+    public void addLikeEvent(long eventId, long userId) {
+        UserDto userDto = getUserDto(userId);
+
+        List<RequestDto> requestsByUserIdAndEventId = privateUserRequestClient
+                .getAllRequests(userId)
+                .stream()
+                .filter(requestDto -> requestDto.event() == eventId
+                        && requestDto.status() == State.CONFIRMED)
+                .toList();
+
+        if (requestsByUserIdAndEventId.isEmpty()) {
+            throw new BadRequestException("Completed event not found");
+        }
+
+        UserActionProto userActionProto = UserActionProto.newBuilder()
+                .setEventId(eventId)
+                .setUserId(userId)
+                .setActionType(ActionTypeProto.ACTION_LIKE)
+                .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(System.currentTimeMillis() / 1000)
+                        .build())
+                .build();
+
+        clientCollectorGrpc.collectUserAction(userActionProto);
+    }
+
+    private Stream<RecommendedEventProto> asStream(Iterator<RecommendedEventProto> iterator) {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),
+                false
+        );
+    }
+
     private void addStats(final HttpServletRequest request) {
         EndpointHit endpointHit = new EndpointHit();
         endpointHit.app("event-service");
@@ -427,7 +532,6 @@ public class EventServiceImpl implements EventService {
                 .filter(requestDto -> requestDto.status() == State.CONFIRMED)
                 .count();
 
-        event.setViews(views);
         event.setConfirmedRequests((int) confirmedRequests);
     }
 

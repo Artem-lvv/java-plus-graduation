@@ -80,7 +80,8 @@ public class ErrorHandler {
         return errorResponse;
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class,
+            MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBindException(final BindException e) {
         final ErrorResponse errorResponse = ErrorResponse.builder()

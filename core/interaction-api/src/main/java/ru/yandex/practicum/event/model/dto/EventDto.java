@@ -26,6 +26,5 @@ public record EventDto(
         boolean requestModeration,
         State state,
         String title,
-        long views
-) {
+        double rating) {
 }

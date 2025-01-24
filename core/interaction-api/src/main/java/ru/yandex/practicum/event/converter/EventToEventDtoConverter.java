@@ -28,7 +28,7 @@ public class EventToEventDtoConverter implements Converter<Event, EventDto> {
                 .requestModeration(source.isRequestModeration())
                 .state(source.getState())
                 .title(source.getTitle())
-                .views(source.getViews())
+                .rating(source.getRating())
                 .build();
     }
 }

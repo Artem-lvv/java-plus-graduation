@@ -1,7 +1,9 @@
 package ru.yandex.practicum.service;
 
+import com.google.protobuf.Timestamp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,9 @@ import ru.yandex.practicum.event.model.dto.EventDtoWithObjects;
 import ru.yandex.practicum.event.model.dto.UpdateEventDto;
 import ru.yandex.practicum.exception.type.ConflictException;
 import ru.yandex.practicum.exception.type.NotFoundException;
+import ru.yandex.practicum.grpc.collector.controller.UserActionControllerGrpc;
+import ru.yandex.practicum.grpc.collector.user.ActionTypeProto;
+import ru.yandex.practicum.grpc.collector.user.UserActionProto;
 import ru.yandex.practicum.request.model.Request;
 import ru.yandex.practicum.request.model.dto.RequestDto;
 import ru.yandex.practicum.request.model.dto.RequestStatusUpdateResultDto;
@@ -37,6 +42,9 @@ public class RequestServiceImpl implements RequestService {
     private final RequestStorage requestStorage;
     private final AdminUserClient adminUserClient;
     private final AdminEventClient adminEventClient;
+
+    @GrpcClient("collector")
+    private UserActionControllerGrpc.UserActionControllerBlockingStub clientCollectorGrpc;
 
     @Override
     public RequestDto create(final long userId, final long eventId) {
@@ -85,6 +93,17 @@ public class RequestServiceImpl implements RequestService {
             UpdateEventDto updateEventDto = cs.convert(event, UpdateEventDto.class);
             adminEventClient.update(updateEventDto, event.getId());
         }
+
+        UserActionProto userActionProto = UserActionProto.newBuilder()
+                .setEventId(eventId)
+                .setUserId(userId)
+                .setActionType(ActionTypeProto.ACTION_REGISTER)
+                .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(System.currentTimeMillis() / 1000)
+                        .build())
+                .build();
+
+        clientCollectorGrpc.collectUserAction(userActionProto);
 
         return cs.convert(requestStorage.save(request), RequestDto.class);
     }

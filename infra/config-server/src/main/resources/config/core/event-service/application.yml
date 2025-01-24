@@ -23,6 +23,7 @@ spring:
       service-discovery:
         timeout: 1s
 
+
 server:
   port: 0
 

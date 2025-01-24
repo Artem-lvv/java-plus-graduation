@@ -76,5 +76,5 @@ public class Event {
     private String title;
 
     @Column(nullable = false)
-    private long views;
+    private double rating;
 }

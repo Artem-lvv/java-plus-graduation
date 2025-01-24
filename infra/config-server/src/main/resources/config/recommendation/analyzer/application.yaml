@@ -1,0 +1,58 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5440/${POSTGRES_DB:analyzer-db}
+    #    url: jdbc:postgresql://ewm-db:5432/${POSTGRES_DB:ewm-main}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+    sql:
+      init:
+        mode: always
+    jpa:
+      hibernate:
+        ddl-auto: none  # Автоматическое создание или обновление таблиц
+      show-sql: true  # Показывать SQL-запросы в логах
+      properties:
+        hibernate:
+          format_sql: true  # Форматирование SQL-запросов для удобочитаемости
+    cloud:
+      loadbalancer:
+        retry:
+          enabled: true
+          retry-on-all-operations: true
+        service-discovery:
+          timeout: 1s
+  kafka:
+    consumer:
+      bootstrap-servers: kafka:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://schema-registry:9102
+        specific.avro.reader: true
+
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+        retry-on-all-operations: true
+      service-discovery:
+        timeout: 1s
+
+server:
+  port: 0
+
+grpc:
+  server:
+    port: ${ANALYZER_GRPC_PORT:0}
+
+resilience4j.circuitbreaker:
+  instances:
+    myService:
+      slidingWindowSize: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000 # 10 секунд в миллисекундах
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: COUNT_BASED
+      minimumNumberOfCalls: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true
